@@ -6,9 +6,6 @@ This document will describe how bulge will work.
 Both the actual package manager and the repositories's layout will be defined here.  
 Design subject to change.
 
-## PACKAGE MANAGER
-
-
 ## SERVER
 
 All repo metadata will be grabbed from the root of the arch folder as JSON data.  
@@ -23,7 +20,7 @@ The repo metadata format will be as follows:
      "email": "skye.viau@gmail.com"
   },
   "arch": "x86-64",
-  "lastUpdated": ""
+  "lastUpdated": "1585394210"
 }
 ```
 
@@ -34,7 +31,7 @@ folder.
 The metadata for the package looks something like this:
 ```json
 {
-  "name": "Test Package",
+  "name": "test-package",
   "version": "1.0.0-dev",
   "summary": "A test Bulge package",
   "homepage": "https://example.com",
@@ -68,3 +65,23 @@ make install
 
 `$src` is the source array object   
 `$temp` is the folder which the build commands run in
+
+
+
+## CLIENT
+
+All packages and a stored local version are kept in a single database structured like this:
+
+```json
+{
+  "lastUpdated": "1585394210",
+  "packages": {
+    "test-package": {
+      "version": "1.0.0-dev"
+    },
+    "test-package-2": {
+      "version": "1.2"
+    } 
+  }
+}
+```
