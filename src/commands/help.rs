@@ -4,7 +4,7 @@ pub fn help() {
     println!("commands:");
     println!("  bulge {{-h --help}}");
     println!("  bulge {{s sync}}");
-    println!("  bulge {{up upgrade}}");
+    println!("  bulge {{u upgrade}}");
     println!("  bulge {{i install}} <package>");
     println!("  bulge {{r remove}} <package>");
     println!("  bulge info <package>");
