@@ -1,5 +1,4 @@
-use std::fs;
-use std::fs::File;
+use std::{fs, fs::File};
 use std::path::Path;
 use text_io::read;
 use std::io::Write;

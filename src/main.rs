@@ -23,6 +23,24 @@ fn main() {
         "-h" => commands::help::help(),
         "--help" => commands::help::help(),
 
+        // Sync commands
+        "s" => commands::sync::sync(),
+        "sync" => commands::sync::sync(),
+
+        // Upgrade commands
+        "u" => commands::upgrade::upgrade(),
+        "upgrade" => commands::upgrade::upgrade(),
+
+        // Install commands
+        "i" => commands::install::install(args),
+        "install" => commands::install::install(args),
+
+        // Remove commands
+
+        // Info commands
+
+        // List commands
+
         // Show help if invalid command is given
         _ => commands::help::help()
     }

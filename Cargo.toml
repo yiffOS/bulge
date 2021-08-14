@@ -13,3 +13,4 @@ sudo = "0.6.0"
 text_io = "0.1.9"
 kdl = "1.1.0"
 b2sum = "0.4.0"
+xdg = { git = "https://github.com/whitequark/rust-xdg.git" }
