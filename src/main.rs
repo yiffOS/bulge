@@ -2,9 +2,14 @@ mod commands;
 mod util;
 
 use std::env;
+use xdg::BaseDirectories;
 
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
+}
+
+pub fn get_xdg_direct() -> BaseDirectories {
+    return BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories")
 }
 
 fn main() {
