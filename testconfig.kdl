@@ -1,0 +1,44 @@
+config {
+    architecture "x86_64"
+    colour true
+    progressbar true
+    makeflags "-j4"
+}
+
+paths {
+    root ""
+    database ""
+    cache ""
+    log ""
+    gpg ""
+}
+
+repos {
+    repo "core" active=true {
+        ignored {
+            package ""
+            group ""
+        }
+    }
+
+    repo "extra" active=true {
+        ignored {
+            package ""
+            group ""
+        }
+    }
+
+    repo "community" active=true {
+        ignored {
+            package ""
+            group ""
+        }
+    }
+
+    repo "balls" url="https://example.com/balls" active=false {
+        ignored {
+            package ""
+            group ""
+        }
+    }
+}
