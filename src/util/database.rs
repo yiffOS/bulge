@@ -37,6 +37,7 @@ pub fn init_database() {
         "create table if not exists installed_packages
             (
                 name text not null unique primary key,
+                groups text[],
                 source text not null,
                 version integer not null
             )",
