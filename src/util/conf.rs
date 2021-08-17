@@ -29,11 +29,13 @@ pub fn get_config_entry(entry: String) -> Result<Vec<KdlValue>, KdlError> {
                 vec_object = i.children.clone();
                 break
             } else if (vec_object.len() -1) == pos {
-                return Ok(vec![])
+                // If we're in the last position of the vec and it has not matched yet, assume that the requested config entry doesn't exist
+                return Ok(vec![]) // TODO: Return an error here instead of just Oking it
             }
             pos += 1;
         }
     }
 
+    // Return requested values
     Ok(vec_object[0].values.clone())
 }
