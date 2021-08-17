@@ -9,7 +9,7 @@ pub fn get_version() -> &'static str {
 }
 
 pub fn get_xdg_direct() -> BaseDirectories {
-    return BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories")
+    BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories")
 }
 
 fn main() {

@@ -1,28 +1,39 @@
-use kdl::{KdlValue};
+use kdl::{KdlValue, KdlError, KdlNode};
 use crate::get_xdg_direct;
-
-pub enum ConfigEntry {
-    IgnoredPackages,
-    IgnoredGroups,
-    NoUpgrade,
-    Arch,
-    Repos
-}
+use std::fs::File;
+use std::io::prelude::*;
 
 /// Returns a vec of the specified config entry
-pub fn get_config_entry(entry: ConfigEntry) -> Result<Vec<String>,Err> {
-    // Load config file
-    let config_file = kdl::parse_document(
-        get_xdg_direct().find_config_file("config.kdl")?
-    )?;
+pub fn get_config_entry(entry: String) -> Result<Vec<KdlValue>, KdlError> {
+    // Split input into vec for searching
+    let mut path: Vec<&str> = entry.split(".").collect();
 
-    match entry {
-        ConfigEntry::IgnoredPackages => {}
-        ConfigEntry::IgnoredGroups => {}
-        ConfigEntry::NoUpgrade => {}
-        ConfigEntry::Arch => {}
-        ConfigEntry::Repos => {}
+    // Load config file
+    let mut x = String::new();
+    
+    File::open(get_xdg_direct().find_config_file("config.kdl").expect("Cannot find config, is one present?"))
+        .expect("Failed to open config file, is another process accessing it?")
+        .read_to_string(&mut x);
+
+    // Load config nodes
+    let config_nodes: Vec<KdlNode> = kdl::parse_document(x)?;
+
+    // Search for entry
+    let mut vec_object: Vec<KdlNode> = config_nodes.clone();
+
+    while path.len() > 1 {
+        let mut pos: usize = 0;
+        for i in vec_object.clone().iter() {
+            if i.name == path[0].to_string() {
+                path.remove(0);
+                vec_object = i.children.clone();
+                break
+            } else if (vec_object.len() -1) == pos {
+                return Ok(vec![])
+            }
+            pos += 1;
+        }
     }
 
-    Ok(vec![])
+    Ok(vec_object[0].values.clone())
 }

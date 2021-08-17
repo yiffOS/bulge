@@ -14,28 +14,28 @@ paths {
 }
 
 repos {
-    repo "core" active=true {
+    core active=true {
+        ignored {
+            package "eee"
+            group ""
+        }
+    }
+
+    extra active=true {
         ignored {
             package ""
             group ""
         }
     }
 
-    repo "extra" active=true {
+    community active=true {
         ignored {
             package ""
             group ""
         }
     }
 
-    repo "community" active=true {
-        ignored {
-            package ""
-            group ""
-        }
-    }
-
-    repo "balls" url="https://example.com/balls" active=false {
+    balls url="https://example.com/balls" active=false {
         ignored {
             package ""
             group ""
