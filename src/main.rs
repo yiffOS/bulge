@@ -3,6 +3,7 @@ mod util;
 
 use std::env;
 use xdg::BaseDirectories;
+use crate::util::mirrors::load_mirrors;
 
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
@@ -14,6 +15,8 @@ pub fn get_xdg_direct() -> BaseDirectories {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
+    let gaming = load_mirrors();
 
     // Check if any command was supplied
     if args.len() < 2 {

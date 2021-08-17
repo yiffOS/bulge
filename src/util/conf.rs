@@ -4,7 +4,7 @@ use std::fs::File;
 use std::io::prelude::*;
 
 /// Returns a vec of the specified config entry
-pub fn get_config_entry(entry: String) -> Result<Vec<KdlValue>, KdlError> {
+pub fn get_config_entry(entry: &str) -> Result<Vec<KdlValue>, KdlError> {
     // Split input into vec for searching
     let mut path: Vec<&str> = entry.split(".").collect();
 

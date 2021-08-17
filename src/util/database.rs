@@ -6,7 +6,6 @@ struct Package {
     epoch: i32,
     description: String,
     groups: Vec<String>,
-    arch: Vec<String>,
     url: String,
     license: Vec<String>,
     depends: Vec<String>,
@@ -20,8 +19,10 @@ struct Package {
 
 struct InstalledPackages {
     name: String,
+    groups: Vec<String>,
     source: String,
-    version: i32
+    version: i32,
+    epoch: i32
 }
 
 struct Source {
@@ -39,7 +40,8 @@ pub fn init_database() {
                 name text not null unique primary key,
                 groups text[],
                 source text not null,
-                version integer not null
+                version integer not null,
+                epoch integer not null
             )",
         [],
     ).expect("Failed to insert installed packages table");
