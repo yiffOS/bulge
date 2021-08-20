@@ -1,4 +1,5 @@
 use rusqlite::{params, Connection};
+use std::fs;
 
 struct Package {
     name: String,
@@ -32,6 +33,9 @@ struct Source {
 
 /// Creates a database containing locally installed packages and various information
 pub fn init_database() {
+    sudo::escalate_if_needed().expect("Failed to escalate to root.");
+
+    fs::create_dir_all("/usr/local/share/bulge/");
     let conn = Connection::open("/usr/local/share/bulge/bulge.db").expect("Failed to create package database");
 
     conn.execute(

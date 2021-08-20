@@ -18,8 +18,6 @@ pub fn get_xdg_direct() -> BaseDirectories {
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    let gaming = load_mirrors();
-
     // Check if any command was supplied
     if args.len() < 2 {
         commands::help::help();
