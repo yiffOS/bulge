@@ -5,10 +5,12 @@ use std::env;
 use xdg::BaseDirectories;
 use crate::util::mirrors::load_mirrors;
 
+/// Get a static string of the current bulge version
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
+/// Get a XDG base directory
 pub fn get_xdg_direct() -> BaseDirectories {
     BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories")
 }
@@ -51,5 +53,9 @@ fn main() {
 
         // Show help if invalid command is given
         _ => commands::help::help()
+        // Specify that command is invalid and show help command
+        _ => {
+            println!("bulge: Invalid command \"{}\", use {{-h --help}} for valid commands.", command);
+        }
     }
 }
