@@ -21,6 +21,7 @@ pub fn load_mirrors() -> Vec<String> {
         if !i.is_empty() && !i.starts_with("#") {
             mirrors.push(
                 i.to_string()
+                    .trim()
                     .replace("$arch", arch.trim_matches(|c| c == '\\' || c == '"'))
             );
         }

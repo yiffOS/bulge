@@ -30,9 +30,9 @@ struct Source {
     url: String
 }
 
-/// Creates a database containing locally installed packages
+/// Creates a database containing locally installed packages and various information
 pub fn init_database() {
-    let conn = Connection::open("/etc/bulge/packages.db").expect("Failed to create database");
+    let conn = Connection::open("/usr/local/share/bulge/bulge.db").expect("Failed to create package database");
 
     conn.execute(
         "create table if not exists installed_packages
@@ -45,4 +45,16 @@ pub fn init_database() {
             )",
         [],
     ).expect("Failed to insert installed packages table");
+
+    conn.execute(
+        "create table if not exists repos
+            (
+                name text not null unique primary key,
+                signing_key text not null,
+                last_updated text not null
+            )",
+        [],
+    ).expect("Failed to insert repos table");
+
+    println!("bulge: Created local database")
 }

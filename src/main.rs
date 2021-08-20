@@ -51,8 +51,9 @@ fn main() {
 
         // List commands
 
-        // Show help if invalid command is given
-        _ => commands::help::help()
+        // Internal commands for setup
+        "setup_database" => util::database::init_database(),
+
         // Specify that command is invalid and show help command
         _ => {
             println!("bulge: Invalid command \"{}\", use {{-h --help}} for valid commands.", command);
