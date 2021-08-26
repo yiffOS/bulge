@@ -1,5 +1,5 @@
 use crate::util::lock::{create_lock, remove_lock, lock_exists};
-use sudo::RunningAs;
+use crate::util::database::{search_for_package};
 
 pub fn install(args: Vec<String>) {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
@@ -14,6 +14,11 @@ pub fn install(args: Vec<String>) {
     }
 
     let package: String = args[2].to_lowercase();
+    let repo: String = search_for_package(&package);
 
-    println!("{}", package);
+    if repo.is_empty() {
+        println!("{} was not found!", package)
+    }
+
+    remove_lock().expect("Failed to remove lock?");
 }
