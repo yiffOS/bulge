@@ -1,9 +1,9 @@
 mod commands;
 mod util;
+mod static_files;
 
 use std::env;
 use xdg::BaseDirectories;
-use crate::util::mirrors::load_mirrors;
 
 /// Get a static string of the current bulge version
 pub fn get_version() -> &'static str {
@@ -15,7 +15,8 @@ pub fn get_xdg_direct() -> BaseDirectories {
     BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories")
 }
 
-fn main() {
+#[tokio::main(flavor = "current_thread")]
+async fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Check if any command was supplied
@@ -32,8 +33,8 @@ fn main() {
         "--help" => commands::help::help(),
 
         // Sync commands
-        "s" => commands::sync::sync(),
-        "sync" => commands::sync::sync(),
+        "s" => commands::sync::sync().await,
+        "sync" => commands::sync::sync().await,
 
         // Upgrade commands
         "u" => commands::upgrade::upgrade(),
@@ -50,7 +51,7 @@ fn main() {
         // List commands
 
         // Internal commands for setup
-        "setup_database" => util::database::init_database(),
+        "setup" => util::setup::init().await,
 
         // Specify that command is invalid and show help command
         _ => {

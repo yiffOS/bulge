@@ -1,7 +1,6 @@
 use std::{fs, fs::File};
 use std::path::Path;
 use text_io::read;
-use std::io::Write;
 
 /// Creates a lock file indicating that bulge is open
 pub fn create_lock() -> std::io::Result<()> {
