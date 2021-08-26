@@ -5,6 +5,8 @@ use crate::util::database::update_cached_repos;
 use reqwest::{StatusCode, Response};
 use std::fs::File;
 use std::io::copy;
+use sha2::Digest;
+use hex_literal::hex;
 
 pub async fn sync() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
@@ -24,7 +26,7 @@ pub async fn sync() {
             let url: String;
 
             if i.url.is_some() {
-                url = i.url.clone().expect("Failed to extract custom repo url");
+                url = format!("{}/database.db", i.url.clone().expect("Failed to extract custom repo url"));
             } else {
                 url = format!("{}/database.db", x.replace("$repo", &*i.name));
             }
@@ -55,11 +57,53 @@ pub async fn sync() {
             };
 
             let content = db_response_unwrap.text().await.expect("Failed to read downloaded content");
-            copy(&mut content.as_bytes(), &mut dest).expect("Failed to copy downloaded content");
 
             println!("Downloaded database for {}!", i.name);
 
-            update_cached_repos(&i.name, &"test".to_string());
+            println!("Downloading hash for {}", i.name);
+
+            let hash_url: String;
+
+            if i.url.is_some() {
+                hash_url = format!("{}/database.hash", i.url.clone().expect("Failed to extract custom repo url"));
+            } else {
+                hash_url = format!("{}/database.hash", x.replace("$repo", &*i.name));
+            }
+
+            let hash_response = reqwest::get(&hash_url)
+                .await;
+
+            if hash_response.is_err() {
+                println!("Failed to get {}. Error: {}", &hash_url, hash_response.err().unwrap());
+                continue;
+            }
+
+            let hash_response_unwrap: Response = hash_response.expect("Response errored while bypassing the check");
+
+            if hash_response_unwrap.status() != StatusCode::OK  {
+                println!("Failed to get {}. Status: {}", &hash_url, hash_response_unwrap.status());
+                continue;
+            }
+
+            let hash = hash_response_unwrap.text().await.expect("Failed to convert hash to string");
+
+            let mut sha512 = sha2::Sha512::new();
+
+            sha512.update(content.as_bytes());
+            let hash_result = sha512.finalize();
+
+            /* FIXME: Figure out how to convert the string hash to [u8]
+            if &hash_result[..] != hex!("{}", hash) {
+                println!("Database for {} failed to match with provided hash. Trying next mirror.", hash_url);
+                continue;
+            }
+             */
+
+            println!("Downloaded hash for {}!", i.name);
+
+            copy(&mut content.as_bytes(), &mut dest).expect("Failed to copy downloaded content");
+
+            update_cached_repos(&i.name, &hash);
 
             break;
         }

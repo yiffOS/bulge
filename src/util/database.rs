@@ -52,7 +52,7 @@ pub fn init_database() {
         "create table if not exists repos
             (
                 name text not null unique primary key,
-                signing_key text not null,
+                repo_hash text not null,
                 last_updated text not null
             )",
         [],
@@ -110,7 +110,7 @@ pub fn search_for_package(package: &String) -> String {
     String::new()
 }
 
-pub fn update_cached_repos(repo: &String, signing_key: &String) {
+pub fn update_cached_repos(repo: &String, repo_hash: &String) {
     let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to create package database");
 
     let current_time = SystemTime::now()
@@ -120,10 +120,10 @@ pub fn update_cached_repos(repo: &String, signing_key: &String) {
         .to_string();
 
     conn.execute("
-        INSERT OR REPLACE INTO repos (name, signing_key, last_updated)
+        INSERT OR REPLACE INTO repos (name, repo_hash, last_updated)
         VALUES (?1, ?2, ?3);",
                  params![repo,
-                 signing_key,
+                 repo_hash,
                  current_time]
     ).expect("Failed to insert repo into database!");
 }

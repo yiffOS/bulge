@@ -16,3 +16,5 @@ kdl = "1.1.0"
 b2sum = "0.4.0"
 xdg = { git = "https://github.com/whitequark/rust-xdg.git" }
 tokio = { version = "1.10.1", features = ["rt", "macros"] }
+sha2 = "0.9.5"
+hex-literal = "0.3.3"
