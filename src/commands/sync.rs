@@ -4,9 +4,10 @@ use crate::util::mirrors::load_mirrors;
 use crate::util::database::update_cached_repos;
 use reqwest::{StatusCode, Response};
 use std::fs::File;
-use std::io::copy;
+use std::io::{copy, Cursor};
 use sha2::Digest;
 use hex_literal::hex;
+use tokio::io::AsyncReadExt;
 
 pub async fn sync() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
@@ -38,7 +39,7 @@ pub async fn sync() {
                 continue;
             }
 
-            let db_response_unwrap: Response = db_response.expect("Response errored while bypassing the check");
+            let mut db_response_unwrap: Response = db_response.expect("Response errored while bypassing the check");
 
             if db_response_unwrap.status() != StatusCode::OK  {
                 println!("Failed to get {}. Status: {}", &url, db_response_unwrap.status());
@@ -56,7 +57,7 @@ pub async fn sync() {
                 File::create(format!("/etc/bulge/databases/cache/{}.db", i.name)).expect("Failed to save downloaded database!")
             };
 
-            let content = db_response_unwrap.text().await.expect("Failed to read downloaded content");
+            let mut content = Cursor::new(db_response_unwrap.bytes().await.expect("Failed to read downloaded content"));
 
             println!("Downloaded database for {}!", i.name);
 
@@ -87,10 +88,10 @@ pub async fn sync() {
 
             let hash = hash_response_unwrap.text().await.expect("Failed to convert hash to string");
 
-            let mut sha512 = sha2::Sha512::new();
+            //let mut sha512 = sha2::Sha512::new();
 
-            sha512.update(content.as_bytes());
-            let hash_result = sha512.finalize();
+            //sha512.update(content.clone());
+            //let hash_result = sha512.finalize();
 
             /* FIXME: Figure out how to convert the string hash to [u8]
             if &hash_result[..] != hex!("{}", hash) {
@@ -101,7 +102,7 @@ pub async fn sync() {
 
             println!("Downloaded hash for {}!", i.name);
 
-            copy(&mut content.as_bytes(), &mut dest).expect("Failed to copy downloaded content");
+            copy(&mut content, &mut dest).expect("Failed to copy downloaded content");
 
             update_cached_repos(&i.name, &hash);
 
