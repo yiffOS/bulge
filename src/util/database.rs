@@ -1,6 +1,7 @@
 use rusqlite::{params, Connection};
 use crate::util::macros::vec_to_string;
 use std::time::{SystemTime, UNIX_EPOCH};
+use crate::util::conf::get_sources;
 
 pub struct Package {
     pub name: String,
@@ -107,7 +108,24 @@ pub fn add_package_to_installed(package: Package, source: Source) {
 
 /// Look for a package in a repo and return the repo it is present in
 pub fn search_for_package(package: &String) -> String {
-    String::new()
+    let mut repo = String::new();
+
+    for i in get_sources() {
+        let conn = Connection::open(format!("/etc/bulge/databases/cache/{}.db", i.name)).expect("Failed to open database");
+
+        let mut statement = conn.prepare("SELECT * FROM packages WHERE name = ?").expect("Failed to prepare statement");
+        let mut rows = statement.query([package]).expect("Failed to run query");
+
+        while let Some(row) = rows.next().expect("Failed to get next row") {
+            repo = i.name.clone();
+        }
+
+        if !repo.is_empty() {
+            return repo
+        }
+    }
+
+    return repo
 }
 
 pub fn update_cached_repos(repo: &String, repo_hash: &String) {

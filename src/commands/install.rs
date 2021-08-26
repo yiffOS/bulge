@@ -20,5 +20,7 @@ pub fn install(args: Vec<String>) {
         println!("{} was not found!", package)
     }
 
+    println!("{} was found in {}", package, repo);
+
     remove_lock().expect("Failed to remove lock?");
 }
