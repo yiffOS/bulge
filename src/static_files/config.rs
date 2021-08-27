@@ -17,7 +17,7 @@ paths {
 repos {
     core active=true {
         ignored {
-            package "eee"
+            package ""
             group ""
         }
     }
