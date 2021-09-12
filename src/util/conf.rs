@@ -3,6 +3,27 @@ use std::fs::File;
 use std::io::prelude::*;
 use crate::util::database::Source;
 use std::fmt;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Config {
+    config: ConfigNode,
+    repos: Vec<RepoNode>
+}
+
+#[derive(Deserialize)]
+struct ConfigNode {
+    architecture: String,
+    colour: bool,
+    progressbar: bool
+}
+
+#[derive(Deserialize)]
+struct RepoNode {
+    name: String,
+    active: bool,
+    url: Option<String> 
+}
 
 pub struct ConfigError;
 
@@ -26,7 +47,7 @@ pub fn get_config_node(entry: &str) -> Result<Vec<KdlNode>, ConfigError> {
     // Load config file
     let mut x = String::new();
     
-    File::open("/etc/bulge/config.kdl")
+    File::open("/etc/bulge/config.json")
         .expect("Failed to open config file, is another process accessing it?")
         .read_to_string(&mut x)
         .expect("Failed to convert file to string");
