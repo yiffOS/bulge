@@ -5,9 +5,6 @@ use crate::util::database::update_cached_repos;
 use reqwest::{StatusCode, Response};
 use std::fs::File;
 use std::io::{copy, Cursor};
-use sha2::Digest;
-use hex_literal::hex;
-use tokio::io::AsyncReadExt;
 
 pub async fn sync() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
@@ -39,7 +36,7 @@ pub async fn sync() {
                 continue;
             }
 
-            let mut db_response_unwrap: Response = db_response.expect("Response errored while bypassing the check");
+            let db_response_unwrap: Response = db_response.expect("Response errored while bypassing the check");
 
             if db_response_unwrap.status() != StatusCode::OK  {
                 println!("Failed to get {}. Status: {}", &url, db_response_unwrap.status());

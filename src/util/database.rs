@@ -116,7 +116,7 @@ pub fn search_for_package(package: &String) -> String {
         let mut statement = conn.prepare("SELECT * FROM packages WHERE name = ?").expect("Failed to prepare statement");
         let mut rows = statement.query([package]).expect("Failed to run query");
 
-        while let Some(row) = rows.next().expect("Failed to get next row") {
+        while let Some(_) = rows.next().expect("Failed to get next row") {
             repo = i.name.clone();
         }
 
