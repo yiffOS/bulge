@@ -1,13 +1,12 @@
 use std::fs::File;
 use std::io::prelude::*;
-use crate::util::conf::{get_config_values};
+use crate::util::conf::{get_config_entry, ConfigEntries};
 
 /// Load mirrors for repos from mirror list
 pub fn load_mirrors() -> Vec<String> {
     let mut mirrors: Vec<String> = vec![];
 
-    let arch = get_config_values("config.architecture")[0]
-        .to_string();
+    let arch = get_config_entry(ConfigEntries::Architecture, None, None).expect("Failed to get config architecture.");
 
     let mut raw_mirrors = String::new();
 
