@@ -1,9 +1,7 @@
 {
-    "config": {
-        "architecture": "x86_64",
-        "colour": true,
-        "progressbar": true
-    },
+    "architecture": "x86_64",
+    "colour": true,
+    "progressbar": true,
     "repos": [
         {
             "name": "core",
