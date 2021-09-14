@@ -31,8 +31,8 @@ pub async fn init() {
     println!();
 
     println!("Creating default configuration file.");
-    fs::File::create("/etc/bulge/config.kdl")
-        .expect("Failed to create /etc/bulge/config.kdl")
+    fs::File::create("/etc/bulge/config.json")
+        .expect("Failed to create /etc/bulge/config.json")
         .write_all(default_config().as_ref())
         .expect("Failed to insert default configuration.");
 

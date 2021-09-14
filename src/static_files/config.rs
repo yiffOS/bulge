@@ -1,39 +1,26 @@
 pub fn default_config() -> &'static str {
-    r#"config {
-    architecture "x86_64"
-    colour true
-    progressbar true
-    makeflags "-j4"
-}
-
-paths {
-    root ""
-    database ""
-    cache ""
-    log ""
-    gpg ""
-}
-
-repos {
-    core active=true {
-        ignored {
-            package ""
-            group ""
-        }
-    }
-
-    extra active=true {
-        ignored {
-            package ""
-            group ""
-        }
-    }
-
-    community active=true {
-        ignored {
-            package ""
-            group ""
-        }
-    }
-}"#
+    r#"{
+        "architecture": "x86_64",
+        "colour": true,
+        "progressbar": true,
+        "repos": [
+            {
+                "name": "core",
+                "active": true
+            },
+            {
+                "name": "extra",
+                "active": true
+            },
+            {
+                "name": "community",
+                "active": true
+            },
+            {
+                "name": "external",
+                "active": false,
+                "url": "https://www.example.com"
+            }
+        ]
+    }"#
 }

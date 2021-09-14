@@ -1,0 +1,24 @@
+{
+    "architecture": "x86_64",
+    "colour": true,
+    "progressbar": true,
+    "repos": [
+        {
+            "name": "core",
+            "active": true
+        },
+        {
+            "name": "extras",
+            "active": true
+        },
+        {
+            "name": "community",
+            "active": true
+        },
+        {
+            "name": "external",
+            "active": false,
+            "url": "https://www.example.com"
+        }
+    ]
+}
