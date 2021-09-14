@@ -1,17 +1,15 @@
 pub fn default_config() -> &'static str {
     r#"{
-        "config": {
-            "architecture": "x86_64",
-            "colour": true,
-            "progressbar": true
-        },
+        "architecture": "x86_64",
+        "colour": true,
+        "progressbar": true,
         "repos": [
             {
                 "name": "core",
                 "active": true
             },
             {
-                "name": "extras",
+                "name": "extra",
                 "active": true
             },
             {
