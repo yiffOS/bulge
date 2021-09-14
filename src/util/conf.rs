@@ -1,35 +1,14 @@
-use kdl::{KdlValue, KdlNode};
 use std::fs::File;
 use std::io::prelude::*;
 use crate::util::database::Source;
-use std::fmt;
+use std::fmt::{self};
 use serde::Deserialize;
-
-#[derive(Deserialize)]
-struct Config {
-    config: ConfigNode,
-    repos: Vec<RepoNode>
-}
-
-#[derive(Deserialize)]
-struct ConfigNode {
-    architecture: String,
-    colour: bool,
-    progressbar: bool
-}
-
-#[derive(Deserialize)]
-struct RepoNode {
-    name: String,
-    active: bool,
-    url: Option<String> 
-}
 
 pub struct ConfigError;
 
 impl fmt::Display for ConfigError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Error getting config!")
+        write!(f, "Requested config entry not found!")
     }
 }
 
@@ -39,11 +18,36 @@ impl fmt::Debug for ConfigError {
     }
 }
 
-/// Returns a request KdlNode object, for use in other config entry getters
-pub fn get_config_node(entry: &str) -> Result<Vec<KdlNode>, ConfigError> {
-    // Split input into vec for searching
-    let mut path: Vec<&str> = entry.split(".").collect();
+pub enum ConfigEntries {
+    Architecture,
+    Colour,
+    Progressbar,
+    Repos
+}
 
+pub enum RepoEntries {
+    Name,
+    Active,
+    Url
+}
+
+#[derive(Deserialize)]
+struct Config {
+    architecture: String,
+    colour: bool,
+    progressbar: bool,
+    repos: Vec<RepoNode>
+}
+
+#[derive(Deserialize)]
+struct RepoNode {
+    name: String,
+    active: bool,
+    url: Option<String> 
+}
+
+/// Returns a request KdlNode object, for use in other config entry getters
+pub fn get_config_entry(entry: ConfigEntries, repo: Option<String>, repo_entry: Option<RepoEntries>) -> Result<String, ConfigError> {
     // Load config file
     let mut x = String::new();
     
@@ -52,75 +56,68 @@ pub fn get_config_node(entry: &str) -> Result<Vec<KdlNode>, ConfigError> {
         .read_to_string(&mut x)
         .expect("Failed to convert file to string");
 
-    // Load config nodes
-    let config_nodes: Vec<KdlNode> = kdl::parse_document(x).expect("Cannot get config nodes");
+    let config: Config = serde_json::from_str(&x).expect("Failed to serialize data");
 
-    // Search for entry
-    let mut vec_object: Vec<KdlNode> = config_nodes.clone();
-
-    if path.len() == 1 { // FIXME: this is a horrible hack and creates unnecessary duplicated code
-        let mut pos: usize = 0;
-        for i in vec_object.clone().iter() {
-            if i.name == path[0].to_string() {
-                path.remove(0);
-                vec_object = i.children.clone();
-                break
-            } else if (vec_object.len() -1) == pos{
-                // If we're in the last position of the vec and it has not matched yet, assume that the requested config entry doesn't exist
-                return Err(ConfigError{})
+    match entry {
+        ConfigEntries::Architecture => {
+            return Ok(config.architecture)
+        },
+        ConfigEntries::Colour => {
+            return Ok(config.colour.to_string())
+        },
+        ConfigEntries::Progressbar => {
+            return Ok(config.progressbar.to_string())
+        },
+        ConfigEntries::Repos => {
+            if repo.is_none() && repo_entry.is_none() {
+                for i in config.repos {
+                    if repo.clone().unwrap() == i.name {
+                        match repo_entry.unwrap() {
+                            RepoEntries::Name => return Ok(i.name),
+                            RepoEntries::Active => return Ok(i.active.to_string()),
+                            RepoEntries::Url => {
+                                if i.url.is_some() {
+                                    return Ok(i.url.unwrap());
+                                }
+                                return Ok(String::new());
+                            },
+                        }
+                    }
+                }
             }
-            pos += 1;
-        }
-
-        // Return requested node early
-        return Ok(vec_object.clone());
+            return Err(ConfigError)
+        },
     }
-
-    while path.len() > 1 {
-        let mut pos: usize = 0;
-        for i in vec_object.clone().iter() {
-            if i.name == path[0].to_string() {
-                path.remove(0);
-                vec_object = i.children.clone();
-                break
-            } else if (vec_object.len() -1) == pos{
-                // If we're in the last position of the vec and it has not matched yet, assume that the requested config entry doesn't exist
-                return Err(ConfigError{})
-            }
-            pos += 1;
-        }
-    }
-
-    // Return requested node
-    Ok(vec_object.clone())
 }
 
-pub fn get_config_values(entry: &str) -> Vec<KdlValue> {
-    let node = get_config_node(entry).expect("Failed to get node from config");
+fn get_repo_vec() -> Vec<RepoNode> {
+        // Load config file
+        let mut x = String::new();
+    
+        File::open("/etc/bulge/config.json")
+            .expect("Failed to open config file, is another process accessing it?")
+            .read_to_string(&mut x)
+            .expect("Failed to convert file to string");
+    
+        let config: Config = serde_json::from_str(&x).expect("Failed to serialize data");
 
-    node[0].values.clone()
-}
-
-pub fn get_config_children(entry: &str) -> Vec<KdlNode> {
-    let node = get_config_node(entry).expect("Failed to get node from config");
-
-    node.clone()
+        return config.repos
 }
 
 /// Return sources in config
 pub fn get_sources() -> Vec<Source> {
     let mut sources: Vec<Source> = vec![];
 
-    let repo_config_entry: Vec<KdlNode> = get_config_children("repos");
+    let repo_config_entry: Vec<RepoNode> = get_repo_vec();
 
     for i in repo_config_entry {
-        if i.properties.get("active").unwrap().to_string() == "true" {
+        if i.active == true {
             sources.push(Source{
                 name: i.name,
-                url: if i.properties.contains_key("url") { Option::from(i.properties.get("url").unwrap().to_string()) } else { None }
+                url: if i.url.is_some() { Option::from(i.url.unwrap()) } else { None }
             })
         }
     }
 
-    sources
+    return sources;
 }
