@@ -9,7 +9,10 @@ pub fn install(args: Vec<String>) {
     create_lock().expect("Failed to create lock file. (Does /tmp/bulge.funny already exist?)");
 
     if args.len() < 3 {
-        println!("Please provide a package to install. (Check bulge --help for usage)");
+        eprintln!("Please provide a package to install. (Check bulge --help for usage)");
+
+        remove_lock().expect("Failed to remove lock?");
+
         std::process::exit(1);
     }
 
