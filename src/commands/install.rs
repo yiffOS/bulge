@@ -20,7 +20,11 @@ pub fn install(args: Vec<String>) {
     let repo: String = search_for_package(&package);
 
     if repo.is_empty() {
-        println!("{} was not found!", package)
+        eprintln!("{} was not found!", package);
+
+        remove_lock().expect("Failed to remove lock?");
+
+        std::process::exit(1);
     }
 
     println!("{} was found in {}", package, repo);
