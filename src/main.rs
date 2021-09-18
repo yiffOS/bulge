@@ -44,6 +44,8 @@ async fn main() {
         "i" => commands::install::install(args),
         "install" => commands::install::install(args),
 
+        // Group install commands
+
         // Remove commands
 
         // Info commands
