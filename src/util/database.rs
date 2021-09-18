@@ -20,12 +20,12 @@ pub struct Package {
     pub checksum: String
 }
 
-struct InstalledPackages {
-    name: String,
-    groups: Vec<String>,
-    source: String,
-    version: f32,
-    epoch: i32
+pub struct InstalledPackages {
+    pub name: String,
+    pub groups: Vec<String>,
+    pub source: String,
+    pub version: f32,
+    pub epoch: i32
 }
 
 pub struct Source {
@@ -126,6 +126,19 @@ pub fn search_for_package(package: &String) -> String {
     }
 
     return repo
+}
+
+pub fn is_packaged_installed(package: &String) -> bool {
+    let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to open database");
+
+    let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE name = ?").expect("Failed to prepare statement");
+    let mut rows = statement.query([package]).expect("Failed to run query");
+
+    while let Some(_) = rows.next().expect("Failed to get next row") {
+        return true
+    }
+
+    return false
 }
 
 pub fn update_cached_repos(repo: &String, repo_hash: &String) {
