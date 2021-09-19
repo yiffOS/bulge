@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
-use crate::util::conf::{get_config_entry, ConfigEntries};
+use crate::util::config::fns::get_config_entry;
+use crate::util::config::structs::ConfigEntries;
 
 /// Load mirrors for repos from mirror list
 pub fn load_mirrors() -> Vec<String> {
