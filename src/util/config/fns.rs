@@ -1,55 +1,8 @@
 use std::fs::File;
 use std::io::prelude::*;
 use crate::util::database::Source;
-use std::fmt::{self};
-use serde::Deserialize;
+use crate::util::config::structs::{ConfigEntries, ConfigError, Config, RepoEntries, RepoNode};
 
-/// Custom error type for config related errors.
-pub struct ConfigError;
-
-impl fmt::Display for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Requested config entry not found!")
-    }
-}
-
-impl fmt::Debug for ConfigError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{ file: {}, line: {} }}", file!(), line!()) // programmer-facing output
-    }
-}
-
-/// All possible config entries.
-pub enum ConfigEntries {
-    Architecture,
-    Colour,
-    Progressbar,
-    Repos
-}
-
-/// All possible repo config entries.
-pub enum RepoEntries {
-    Name,
-    Active,
-    Url
-}
-
-/// Struct form of Bulge's config file.
-#[derive(Deserialize)]
-struct Config {
-    architecture: String,
-    colour: bool,
-    progressbar: bool,
-    repos: Vec<RepoNode>
-}
-
-/// Struct form of repo config.
-#[derive(Deserialize)]
-struct RepoNode {
-    name: String,
-    active: bool,
-    url: Option<String> 
-}
 
 /// Returns a string of the requested config entry, optionally returns a config entry within a repo.
 ///

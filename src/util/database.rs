@@ -1,7 +1,7 @@
 use rusqlite::{params, Connection};
 use crate::util::macros::vec_to_string;
 use std::time::{SystemTime, UNIX_EPOCH};
-use crate::util::conf::get_sources;
+use crate::util::config::fns::get_sources;
 
 pub struct Package {
     pub name: String,

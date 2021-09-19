@@ -1,5 +1,5 @@
 use crate::util::lock::{create_lock, remove_lock, lock_exists};
-use crate::util::conf::get_sources;
+use crate::util::config::fns::get_sources;
 use crate::util::mirrors::load_mirrors;
 use crate::util::database::update_cached_repos;
 use reqwest::{StatusCode, Response};
