@@ -53,7 +53,7 @@ async fn main() {
         // List commands
 
         // Internal commands for setup
-        "setup" => util::setup::init().await,
+        "setup" => commands::setup::init().await,
 
         // Specify that command is invalid and show help command
         _ => {
