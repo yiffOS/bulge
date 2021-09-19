@@ -1,6 +1,6 @@
 use std::fs;
 use crate::util::lock::{lock_exists, create_lock, remove_lock};
-use crate::util::database::init_database;
+use crate::util::database::fns::init_database;
 use std::io::Write;
 use crate::static_files::config::default_config;
 use crate::static_files::mirrors::default_mirrorlist;

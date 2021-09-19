@@ -1,6 +1,6 @@
 use std::fs::File;
 use std::io::prelude::*;
-use crate::util::database::Source;
+use crate::util::database::structs::Source;
 use crate::util::config::structs::{ConfigEntries, ConfigError, Config, RepoEntries, RepoNode};
 
 
