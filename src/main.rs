@@ -1,6 +1,5 @@
 mod commands;
 mod util;
-mod static_files;
 
 use std::env;
 use xdg::BaseDirectories;
