@@ -11,7 +11,7 @@ pub fn get_version() -> &'static str {
 
 /// Get a XDG base directory
 pub fn get_xdg_direct() -> BaseDirectories {
-    BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories")
+    BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories.")
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -27,7 +27,7 @@ async fn main() {
     let command: String = args[1].to_lowercase();
 
     match &command[..] {
-        // Help commands
+        // Help commands    
         "-h" => commands::help::help(),
         "--help" => commands::help::help(),
 
@@ -42,6 +42,8 @@ async fn main() {
         // Install commands
         "i" => commands::install::install(args),
         "install" => commands::install::install(args),
+        "li" => commands::localinstall::local_install(args),
+        "localinstall" => commands::localinstall::local_install(args),
 
         // Group install commands
 
