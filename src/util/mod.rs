@@ -1,3 +1,4 @@
+pub mod packaging;
 pub mod lock;
 pub mod database;
 /// Utility functions and structs relating to Bulge's configuration.
