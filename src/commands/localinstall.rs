@@ -1,9 +1,8 @@
-use std::fs;
 use std::path::Path;
-use xz2::read::XzDecoder;
-use tar::Archive;
+use std::fs;
 
 use crate::util::lock::{create_lock, remove_lock, lock_exists};
+use crate::util::packaging::fns::{check_if_local_package, decompress_xz};
 
 pub fn local_install(args: Vec<String>) {
     if args.len() < 3 {
@@ -24,24 +23,15 @@ pub fn local_install(args: Vec<String>) {
 
     for i in &packages {
         // Check if i is a valid path and assume it's a file we want to install if it is
-        println!("Getting package from {}", i);
         if Path::new(i).exists() {
-            // Decompress the tar file
-            let file_bytes = fs::File::open(i).expect("Failed to read package!");
-            let decompressor = XzDecoder::new(file_bytes);
+            let package = decompress_xz(fs::File::open(i).expect("Failed to read package!"));
 
-            let mut a = Archive::new(decompressor);
-
-            println!("Decompressed package, looking for package information.");
-
-            // Look for PKG file
-            for file in a.entries().unwrap() {
-                if  file.unwrap().header().path().unwrap() == Path::new("PKG") {
-                    // If a PKG file is found then this is a valid package
-                    println!("PKG found!");
-                }
-
-                
+            if !check_if_local_package(package) {
+                eprintln!("{} is not a valid package!", i);
+    
+                remove_lock().expect("Failed to remove lock?");
+        
+                std::process::exit(1);
             }
         }
     }
