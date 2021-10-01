@@ -1,9 +1,21 @@
-use rusqlite::{params, Connection};
+use rusqlite::{Connection, RowIndex, params};
 use crate::util::{database::structs::Source, macros::vec_to_string};
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::util::config::fns::get_sources;
+use std::{error::Error, fmt};
 
-use super::structs::Package;
+use super::structs::{InstalledPackages, Package};
+
+#[derive(Debug)]
+pub struct PackageDBError;
+
+impl Error for PackageDBError {}
+
+impl fmt::Display for PackageDBError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Error getting package from database!")
+    }
+}
 
 /// Creates a database containing locally installed packages and various information
 pub fn init_database() {
@@ -130,3 +142,26 @@ pub fn update_cached_repos(repo: &String, repo_hash: &String) {
                  current_time]
     ).expect("Failed to insert repo into database!");
 }
+
+pub fn get_installed_package(package: &String) -> Result<InstalledPackages, PackageDBError> {
+    let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to open database");
+
+    let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE name = ?").expect("Failed to prepare statement");
+
+    let result = statement.query_map([package], | package | {
+        return Ok(InstalledPackages{
+            name: package.get(0).unwrap(),
+            groups: package.get::<usize, String>(1).unwrap().split(",").map(|s| s.to_string()).collect(),
+            source: package.get(2).unwrap(),
+            version: package.get(3).unwrap(),
+            epoch: package.get(4).unwrap(),
+        });
+    }).expect("DB Error!");
+
+    for pkg in result {
+        return Ok(pkg.unwrap());
+    }
+
+    return Err(PackageDBError);
+}
+
