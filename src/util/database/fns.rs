@@ -143,6 +143,7 @@ pub fn update_cached_repos(repo: &String, repo_hash: &String) {
     ).expect("Failed to insert repo into database!");
 }
 
+// TODO: Change this to provides?
 pub fn get_installed_package(package: &String) -> Result<InstalledPackages, PackageDBError> {
     let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to open database");
 

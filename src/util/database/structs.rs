@@ -19,7 +19,7 @@ pub struct InstalledPackages {
     pub name: String,
     pub groups: Vec<String>,
     pub source: String,
-    pub version: f32,
+    pub version: String,
     pub epoch: i32
 }
 

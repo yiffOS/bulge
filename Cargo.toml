@@ -21,3 +21,4 @@ serde = { version = "1.0.130", features = ["derive"] }
 serde_json = "1.0.67"
 xz2 = "0.1.6"
 tar = "0.4.37"
+version-compare = "0.0.13"
