@@ -2,18 +2,18 @@ use serde::Deserialize;
 
 
 #[derive(Deserialize)]
-pub struct LocalPackage {
-    name: String,
-    version: String,
-    epoch: i32,
-    description: String,
-    groups: String,
-    url: String,
-    license: String,
-    depends: String,
-    optional_depends: String,
-    provides: String,
-    conflicts: String,
-    replaces: String,
-    sha512sum: String
+pub struct Package {
+    pub name: String,
+    pub version: String,
+    pub epoch: i32,
+    pub description: String,
+    pub groups: String,
+    pub url: String,
+    pub license: String,
+    pub depends: String,
+    pub optional_depends: String,
+    pub provides: String,
+    pub conflicts: String,
+    pub replaces: String,
+    pub sha512sum: String
 }
