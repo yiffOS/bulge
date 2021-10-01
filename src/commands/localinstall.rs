@@ -1,6 +1,7 @@
 use std::path::Path;
 use std::fs;
 
+use crate::util::database::structs::Source;
 use crate::util::lock::{create_lock, remove_lock, lock_exists};
 use crate::util::packaging::fns::{check_if_package, decompress_xz, run_install};
 
@@ -32,7 +33,8 @@ pub fn local_install(args: Vec<String>) {
                 std::process::exit(1);
             }
 
-            run_install(fs::File::open(i).expect("Failed to read package!") ,i.split("/").last().unwrap(),i);
+            run_install(fs::File::open(i).expect("Failed to read package!") ,i.split("/").last().unwrap(),
+            Source{ name: "local".to_string(), url: None });
         }
     }
     remove_lock().expect("Failed to remove lock?");

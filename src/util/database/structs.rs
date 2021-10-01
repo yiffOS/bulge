@@ -1,4 +1,4 @@
-pub struct Package {
+pub struct RemotePackage {
     pub name: String,
     pub version: String,
     pub epoch: i32,
@@ -7,12 +7,11 @@ pub struct Package {
     pub url: String,
     pub license: Vec<String>,
     pub depends: Vec<String>,
-    pub build_depends: Vec<String>,
     pub optional_depends: Vec<String>,
     pub provides: Vec<String>,
     pub conflicts: Vec<String>,
     pub replaces: Vec<String>,
-    pub checksum: String
+    pub sha512sum: String
 }
 
 pub struct InstalledPackages {
@@ -20,7 +19,8 @@ pub struct InstalledPackages {
     pub groups: Vec<String>,
     pub source: String,
     pub version: String,
-    pub epoch: i32
+    pub epoch: i32,
+    pub installed_files: Vec<String>
 }
 
 pub struct Source {

@@ -1,10 +1,10 @@
-use rusqlite::{Connection, RowIndex, params};
-use crate::util::{database::structs::Source, macros::vec_to_string};
+use rusqlite::{Connection, params};
+use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_string}, packaging::structs::NewPackage};
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::util::config::fns::get_sources;
 use std::{error::Error, fmt};
 
-use super::structs::{InstalledPackages, Package};
+use super::structs::InstalledPackages;
 
 #[derive(Debug)]
 pub struct PackageDBError;
@@ -28,7 +28,8 @@ pub fn init_database() {
                 groups text,
                 source text not null,
                 version text not null,
-                epoch integer not null
+                epoch integer not null,
+                installed_files text,
             )",
         [],
     ).expect("Failed to insert installed packages table");
@@ -43,21 +44,12 @@ pub fn init_database() {
         [],
     ).expect("Failed to insert repos table");
 
-    add_package_to_installed(Package{
+    add_package_to_installed(NewPackage {
         name: "bulge".to_string(),
+        groups: "core".to_string(),
         version: crate::get_version().to_string(),
         epoch: 0,
-        description: "An experimental package manager for yiffOS.".to_string(),
-        groups: vec!["core".to_string()],
-        url: "https://www.yiffos.ga/".to_string(),
-        license: vec!["MIT".to_string()],
-        depends: vec![],
-        build_depends: vec!["rust".to_string(), "cargo".to_string()],
-        optional_depends: vec![],
-        provides: vec!["bulge".to_string()],
-        conflicts: vec![],
-        replaces: vec![],
-        checksum: "".to_string()
+        installed_files: vec![],
     }, Source{
         name: "core".to_string(),
         url: None
@@ -65,11 +57,11 @@ pub fn init_database() {
 }
 
 /// Adds a package to the installed packages database
-pub fn add_package_to_installed(package: Package, source: Source) {
+pub fn add_package_to_installed(package: NewPackage, source: Source) {
     let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to create package database");
 
-    // Convert groups into a string
-    let package_groups: String = vec_to_string(package.groups);
+    // Convert installed files into a string
+    let installed_files: String = vec_to_string(package.installed_files);
 
     // Convert source into a string
     let package_source: String;
@@ -80,13 +72,14 @@ pub fn add_package_to_installed(package: Package, source: Source) {
     }
 
     conn.execute("
-        INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch)
+        INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch, installed_files)
         VALUES (?1, ?2, ?3, ?4, ?5);",
         params![package.name,
-        package_groups,
+        package.groups,
         package_source,
         package.version,
-        package.epoch]
+        package.epoch,
+        installed_files]
     ).expect("Failed to insert package into database!");
 }
 
@@ -139,10 +132,11 @@ pub fn get_installed_package(package: &String) -> Result<InstalledPackages, Pack
     let result = statement.query_map([package], | package | {
         return Ok(InstalledPackages{
             name: package.get(0).unwrap(),
-            groups: package.get::<usize, String>(1).unwrap().split(",").map(|s| s.to_string()).collect(),
+            groups: string_to_vec(package.get::<usize, String>(1).unwrap()),
             source: package.get(2).unwrap(),
             version: package.get(3).unwrap(),
             epoch: package.get(4).unwrap(),
+            installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
         });
     }).expect("DB Error!");
 

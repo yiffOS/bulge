@@ -17,3 +17,11 @@ pub struct Package {
     pub replaces: String,
     pub sha512sum: String
 }
+
+pub struct NewPackage {
+    pub name: String,
+    pub groups: String,
+    pub version: String,
+    pub epoch: i32,
+    pub installed_files: Vec<String>
+}
