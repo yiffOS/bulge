@@ -78,12 +78,12 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     }
 
     // Decompress data
-    let mut data_tar = decompress_xz(fs::File::open(format!("/tmp/bulge/{}/data.tar.xz", tmp_path)).expect("Failed to read package!"));
+    let mut data_tar_files = decompress_xz(fs::File::open(format!("/tmp/bulge/{}/data.tar.xz", tmp_path)).expect("Failed to read package!"));
 
     // Calculate files to be installed and extract to temp folder
     let mut files: Vec<String> = vec![];
 
-    data_tar.entries()
+    data_tar_files.entries()
         .expect("IO Error!")
         .filter_map(|e| e.ok())
         .for_each(|x| {
@@ -106,6 +106,9 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     }, source);
 
     println!("Extracting files...");
+    
+    // Open data tar for extraction
+    let mut data_tar = decompress_xz(fs::File::open(format!("/tmp/bulge/{}/data.tar.xz", tmp_path)).expect("Failed to read package!"));
 
     // Extract files onto root
     data_tar.unpack("/")

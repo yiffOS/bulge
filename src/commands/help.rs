@@ -6,7 +6,7 @@ pub fn help() {
     println!("  bulge {{s sync}}");
     println!("  bulge {{u upgrade}}");
     println!("  bulge {{i install}} <package>");
-    println!("  bulge {{gi groupinstall}} <group>");
+    println!("  bulge {{li localinstall}} <path>");
     println!("  bulge {{r remove}} <package>");
     println!("  bulge info <package>");
     println!("  bulge search <package>");
