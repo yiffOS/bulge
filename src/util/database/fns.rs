@@ -29,7 +29,7 @@ pub fn init_database() {
                 source text not null,
                 version text not null,
                 epoch integer not null,
-                installed_files text,
+                installed_files text
             )",
         [],
     ).expect("Failed to insert installed packages table");
@@ -73,7 +73,7 @@ pub fn add_package_to_installed(package: NewPackage, source: Source) {
 
     conn.execute("
         INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch, installed_files)
-        VALUES (?1, ?2, ?3, ?4, ?5);",
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6);",
         params![package.name,
         package.groups,
         package_source,
