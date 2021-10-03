@@ -105,10 +105,12 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
         installed_files: files
     }, source);
 
-    println!("Extracting files...");
+    println!("Decompressing files...");
     
     // Open data tar for extraction
     let mut data_tar = decompress_xz(fs::File::open(format!("/tmp/bulge/{}/data.tar.xz", tmp_path)).expect("Failed to read package!"));
+
+    println!("Unpacking files...");
 
     // Extract files onto root
     data_tar.unpack("/")
