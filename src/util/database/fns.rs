@@ -1,6 +1,6 @@
 use rusqlite::{Connection, params};
-use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_string}, packaging::structs::NewPackage};
-use std::time::{SystemTime, UNIX_EPOCH};
+use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_string}, packaging::structs::{NewPackage, Package}};
+use std::{time::{SystemTime, UNIX_EPOCH}, vec};
 use crate::util::config::fns::get_sources;
 use std::{error::Error, fmt};
 
@@ -81,6 +81,41 @@ pub fn add_package_to_installed(package: NewPackage, source: Source) {
         package.epoch,
         installed_files]
     ).expect("Failed to insert package into database!");
+}
+
+/// Returns files owned by a package
+pub fn return_owned_files(package: &String) -> Result<Vec<String>, rusqlite::Error> {
+    let conn = Connection::open("/etc/bulge/databases/bulge.db")?;
+    let mut files: Vec<String> = vec![];
+
+    let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE name = ?")?;
+
+    let result = statement.query_map([package], | package | {
+        return Ok(InstalledPackages{
+            name: package.get(0).unwrap(),
+            groups: string_to_vec(package.get::<usize, String>(1).unwrap()),
+            source: package.get(2).unwrap(),
+            version: package.get(3).unwrap(),
+            epoch: package.get(4).unwrap(),
+            installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+        });
+    })?;
+
+    for pkg in result {
+        files = pkg?.installed_files.clone();
+    }
+
+    Ok(files)
+}
+
+/// Removes a package from the installed packages database
+pub fn remove_package_from_installed(package: &String) -> Result<(), rusqlite::Error>{
+    let conn = Connection::open("/etc/bulge/databases/bulge.db")?;
+
+    conn.execute("DELETE FROM installed_packages WHERE name = ?1",
+    params![package])?;
+
+    Ok(())
 }
 
 /// Look for a package in a repo and return the repo it is present in
