@@ -6,7 +6,7 @@ use xz2::read::XzDecoder;
 use tar::Archive;
 use std::path::Path;
 
-use crate::util::{database::{fns::{add_package_to_installed, get_installed_package}, structs::Source}, packaging::structs::{NewPackage, Package}};
+use crate::util::{database::{fns::{add_package_to_installed, get_installed_package, remove_package_from_installed, return_owned_files}, structs::Source}, packaging::structs::{NewPackage, Package}};
 
 pub fn decompress_xz(compressed_tar: File) -> Archive<XzDecoder<File>> {
     return Archive::new(XzDecoder::new(compressed_tar));
@@ -118,4 +118,14 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     
     println!();
     println!("Installed {} v{}!", &package.name, &package.version);
+}
+
+pub fn run_remove(package: &String) {
+    for x in return_owned_files(package).expect("Failed to get owned files!") {
+        if Path::new(&x).exists() {
+            fs::remove_file(x).expect("Failed to delete file!")
+        }
+    }
+
+    remove_package_from_installed(package).expect("Failed to remove package from database.");
 }
