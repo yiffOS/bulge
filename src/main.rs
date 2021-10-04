@@ -45,9 +45,9 @@ async fn main() {
         "li" => commands::localinstall::local_install(args),
         "localinstall" => commands::localinstall::local_install(args),
 
-        // Group install commands
-
         // Remove commands
+        "r" => commands::install::install(args),
+        "remove" => commands::install::install(args),
 
         // Info commands
 
