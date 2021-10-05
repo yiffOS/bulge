@@ -6,7 +6,7 @@ use xz2::read::XzDecoder;
 use tar::Archive;
 use std::path::Path;
 
-use crate::util::{database::{fns::{add_package_to_installed, get_installed_package, remove_package_from_installed, return_owned_files}, structs::Source}, packaging::structs::{NewPackage, Package}};
+use crate::util::{database::{fns::{add_package_to_installed, get_installed_package, remove_package_from_installed, return_owned_files}, structs::Source}, lock::remove_lock, packaging::structs::{NewPackage, Package}};
 
 pub fn decompress_xz(compressed_tar: File) -> Archive<XzDecoder<File>> {
     return Archive::new(XzDecoder::new(compressed_tar));
@@ -60,7 +60,7 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     let installed_pkg = get_installed_package(&package.name);
     if installed_pkg.is_ok() {
         // Check if this is a downgrade
-        if Version::from(&package.version) > Version::from(&installed_pkg.unwrap().version) {
+        if Version::from(&package.version) > Version::from(&installed_pkg.as_ref().unwrap().version) {
             let installed_pkg = get_installed_package(&package.name); // Result doesn't have copy
 
             // Ask the user if they'd like to still install the specified package
@@ -92,9 +92,23 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
             }
         });
 
-    // TODO: Check for conflicting files
     println!();
     println!("Looking for conflicting files...");
+    let mut conflict = false;
+    for i in &files {
+        if !installed_pkg.is_ok() && Path::new(&i).exists() {
+            println!("{} already exists!", i);
+            conflict = true;
+        }
+    }
+
+    if conflict {
+        eprintln!("Package files already exist on the file system!");
+
+        remove_lock().expect("Failed to remove lock?");
+
+        std::process::exit(1);
+    }
 
     //Add package to database
     add_package_to_installed(NewPackage { 

@@ -9,8 +9,6 @@ pub fn local_install(args: Vec<String>) {
     if args.len() < 3 {
         eprintln!("Please provide a path to a package to install. (Check bulge --help for usage)");
 
-        remove_lock().expect("Failed to remove lock?");
-
         std::process::exit(1);
     }
 
