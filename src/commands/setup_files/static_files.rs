@@ -28,5 +28,5 @@ pub fn default_config() -> &'static str {
 pub fn default_mirrorlist() -> &'static str {
     r#"# yiffOS default mirror list
 
-https://mirror.yiffos.gay/$arch/$repo"#
+https://repo.yiffos.gay/$arch/$repo"#
 }
