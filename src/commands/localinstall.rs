@@ -35,5 +35,6 @@ pub fn local_install(args: Vec<String>) {
             Source{ name: "local".to_string(), url: None });
         }
     }
+
     remove_lock().expect("Failed to remove lock?");
 }

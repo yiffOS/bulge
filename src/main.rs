@@ -52,6 +52,7 @@ async fn main() {
         // Info commands
 
         // List commands
+        "list" => commands::list::list(),
 
         // Internal commands for setup
         "setup" => commands::setup::init().await,

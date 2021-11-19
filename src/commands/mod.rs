@@ -6,3 +6,4 @@ pub mod localinstall;
 pub mod setup;
 pub mod remove;
 pub(super) mod setup_files;
+pub mod list;
