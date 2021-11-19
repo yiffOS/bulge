@@ -105,9 +105,16 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     if conflict {
         eprintln!("Package files already exist on the file system!");
 
-        remove_lock().expect("Failed to remove lock?");
+        println!("Continue? [y/N]");
+        let s: String = read!();
 
-        std::process::exit(1);
+        if !(s.to_lowercase() == "y".parse::<String>().unwrap()) {
+            println!("Abandoning install!");
+
+            remove_lock().expect("Failed to remove lock?");
+
+            std::process::exit(1);
+        }
     }
 
     //Add package to database
