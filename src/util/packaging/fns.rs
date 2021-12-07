@@ -105,7 +105,7 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     if conflict {
         eprintln!("Package files already exist on the file system!");
 
-        println!("Continue? [y/N]");
+        println!("Continue? THIS WILL DELETE FILES! [y/N]");
         let s: String = read!();
 
         if !(s.to_lowercase() == "y".parse::<String>().unwrap()) {
@@ -114,6 +114,16 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
             remove_lock().expect("Failed to remove lock?");
 
             std::process::exit(1);
+        } else {
+            println!("Continuing install!");
+
+            // Redo the loop but delete files now
+            for i in &files {
+                if !installed_pkg.is_ok() && Path::new(&i).exists() {
+                    println!("DELETING {}!", i);
+                    fs::remove_file(i).expect("Failed to delete file!");
+                }
+            }
         }
     }
 
