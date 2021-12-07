@@ -144,7 +144,11 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     println!("Unpacking files...");
 
     // Extract files onto root
-    data_tar.unpack("/")
+    data_tar.set_preserve_permissions(true);
+    data_tar.set_unpack_xattrs(true);
+
+    data_tar
+        .unpack("/")
         .expect("Extraction error!");
     
     println!();
