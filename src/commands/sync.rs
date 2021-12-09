@@ -24,10 +24,10 @@ pub fn sync() {
 
     create_lock().expect("Failed to create lock file. (Does /tmp/bulge.funny already exist?)");
 
-    println!("Synchronizing repo databases...");
+    println!("=== Synchronizing Repo Databases ===");
 
     for i in get_sources() {
-        println!("Downloading database for {}", i.name);
+        println!("=> Updating {}", i.name);
 
         let mirror_list = load_mirrors();
 
@@ -59,10 +59,6 @@ pub fn sync() {
             };
 
             let mut content = Cursor::new(db_response_unwrap.bytes().expect("Failed to read database bytes"));
-
-            println!("Downloaded database for {}!", i.name);
-
-            println!("Downloading hash for {}", i.name);
 
             let hash_url: String;
 
@@ -103,11 +99,9 @@ pub fn sync() {
             let generated_hash = context.finish();
 
             if generated_hash.as_ref().encode_hex::<String>() != hash_string {
-                println!("Database for {} failed to match with provided hash. Trying next mirror.", hash_url);
+                println!("!!!> Verification failed for {}, trying next mirror. <!!!", hash_url);
                 continue;
             }
-
-            println!("Downloaded hash for {}!", i.name);
 
             copy(&mut content, &mut dest).expect("Failed to copy downloaded content");
 
@@ -116,6 +110,8 @@ pub fn sync() {
             break;
         }
     }
+
+    println!("=== Synchronization Complete ===");
 
     remove_lock().expect("Failed to remove lock?");
 }
