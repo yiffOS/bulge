@@ -120,25 +120,31 @@ pub fn remove_package_from_installed(package: &String) -> Result<(), rusqlite::E
 }
 
 /// Look for a package in a repo and return the repo it is present in
-pub fn search_for_package(package: &String) -> String {
+pub fn search_for_package(package: &String) -> Result<String, PackageDBError> {
     let mut repo = String::new();
 
     for i in get_sources() {
-        let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to open database");
+        let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to create package database");
+
+        // Fail silently and skip, this happens when the repo is empty
+        if conn.prepare("SELECT * FROM packages WHERE name = ?").is_err() {
+            println!("WARN> Repo {} is empty", i.name);
+            continue;
+        }
 
         let mut statement = conn.prepare("SELECT * FROM packages WHERE name = ?").expect("Failed to prepare statement");
-        let mut rows = statement.query([package]).expect("Failed to run query");
+        let mut rows = statement.query([package]).expect("Failed to query database");
 
         while let Some(_) = rows.next().expect("Failed to get next row") {
             repo = i.name.clone();
         }
 
         if !repo.is_empty() {
-            return repo
+            return Ok(repo)
         }
     }
 
-    return repo
+    return Ok(repo)
 }
 
 pub fn update_cached_repos(repo: &String, repo_hash: &String) {
