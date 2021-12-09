@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{copy, Cursor, Read};
+use std::io::{copy, Cursor, Read, Write};
 use futures::SinkExt;
 
 use isahc::http::StatusCode;
@@ -54,11 +54,9 @@ pub fn sync() {
                 continue;
             }
 
-            let mut dest = {
-                File::create(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to save downloaded database!")
-            };
-
-            let mut content = Cursor::new(db_response_unwrap.bytes().expect("Failed to read database bytes"));
+            let mut content_bytes = db_response_unwrap.bytes().expect("Failed to get bytes from response");
+            let mut content = content_bytes.as_slice();
+            let mut content_save = content.clone();
 
             let hash_url: String;
 
@@ -103,7 +101,8 @@ pub fn sync() {
                 continue;
             }
 
-            copy(&mut content, &mut dest).expect("Failed to copy downloaded content");
+            let mut dest = File::create(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to create database file!");
+            copy(&mut content_save, &mut dest).expect("Failed to copy downloaded content");
 
             update_cached_repos(&i.name, &hash_string);
 
