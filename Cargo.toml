@@ -9,7 +9,6 @@ edition = "2018"
 [dependencies]
 
 rusqlite = "0.25.3"
-reqwest = "0.11.4"
 sudo = "0.6.0"
 text_io = "0.1.9"
 b2sum = "0.4.0"
@@ -21,3 +20,4 @@ xz2 = "0.1.6"
 tar = "0.4.37"
 version-compare = "0.0.13"
 futures = "0.3.18"
+isahc = "1.6.0"

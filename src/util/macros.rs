@@ -1,4 +1,8 @@
 use std::env;
+use isahc::http::Error;
+use isahc::{Body, Request, Response};
+use isahc::config::RedirectPolicy;
+use isahc::prelude::*;
 
 /// Converts a vec of strings to a flat string separated by ","
 pub fn vec_to_string(vec: Vec<String>) -> String {
@@ -25,4 +29,12 @@ pub fn get_root() -> String {
         Ok(val) => val,
         Err(_) => "".to_string(),
     }
+}
+
+/// Default isahc get
+pub fn get(url: &String) -> Result<Response<Body>, isahc::Error> {
+    return Request::get(url)
+            .redirect_policy(RedirectPolicy::Follow)
+            .body(())?
+            .send();
 }

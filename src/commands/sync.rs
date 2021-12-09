@@ -1,15 +1,19 @@
 use std::fs::File;
 use std::io::{copy, Cursor};
+use futures::SinkExt;
 
-use futures::executor;
-use reqwest::{Response, StatusCode};
+use isahc::http::StatusCode;
 use sha2::Digest;
 
 use crate::util::config::fns::get_sources;
 use crate::util::database::fns::update_cached_repos;
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
-use crate::util::macros::get_root;
+use crate::util::macros::{get, get_root};
 use crate::util::mirrors::load_mirrors;
+
+use isahc::prelude::*;
+use isahc::{Body, Request, Response};
+use isahc::config::RedirectPolicy;
 
 pub fn sync() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
@@ -34,14 +38,14 @@ pub fn sync() {
                 url = format!("{}/database.db", x.replace("$repo", &*i.name));
             }
 
-            let db_response = executor::block_on(reqwest::get(&url));
+            let db_response = get(&url);
 
             if db_response.is_err() {
                 println!("Failed to get {}. Error: {}", &url, db_response.err().unwrap());
                 continue;
             }
 
-            let db_response_unwrap: Response = db_response.expect("Response errored while bypassing the check");
+            let mut db_response_unwrap: Response<Body> = db_response.expect("Response errored while bypassing the check");
 
             if db_response_unwrap.status() != StatusCode::OK  {
                 println!("Failed to get {}. Status: {}", &url, db_response_unwrap.status());
@@ -49,17 +53,10 @@ pub fn sync() {
             }
 
             let mut dest = {
-                db_response_unwrap
-                    .url()
-                    .path_segments()
-                    .and_then(|segments| segments.last())
-                    .and_then(|name| if name.is_empty() {None} else { Some(name) })
-                    .expect("Empty file name?");
-
                 File::create(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to save downloaded database!")
             };
 
-            let mut content = Cursor::new(executor::block_on(db_response_unwrap.bytes()).expect("Failed to read database bytes"));
+            let mut content = Cursor::new(db_response_unwrap.bytes().expect("Failed to read database bytes"));
 
             println!("Downloaded database for {}!", i.name);
 
@@ -73,28 +70,28 @@ pub fn sync() {
                 hash_url = format!("{}/database.hash", x.replace("$repo", &*i.name));
             }
 
-            let hash_response = executor::block_on(reqwest::get(&hash_url));
+            let hash_response = get(&hash_url);
 
             if hash_response.is_err() {
                 println!("Failed to get {}. Error: {}", &hash_url, hash_response.err().unwrap());
                 continue;
             }
 
-            let hash_response_unwrap: Response = hash_response.expect("Response errored while bypassing the check");
+            let mut hash_response_unwrap: Response<Body> = hash_response.expect("Response errored while bypassing the check");
 
             if hash_response_unwrap.status() != StatusCode::OK  {
                 println!("Failed to get {}. Status: {}", &hash_url, hash_response_unwrap.status());
                 continue;
             }
 
-            let hash = executor::block_on(hash_response_unwrap.bytes()).expect("Failed to read hash bytes");
+            let hash = hash_response_unwrap.bytes().expect("Failed to read hash bytes");
 
             let mut sha512 = sha2::Sha512::new();
 
             sha512.update(content.get_ref());
             let hash_result = sha512.finalize();
 
-            if &hash_result[..] != hash.as_ref() {
+            if &hash_result[..] != hash {
                 println!("Database for {} failed to match with provided hash. Trying next mirror.", hash_url);
                 continue;
             }
@@ -103,7 +100,7 @@ pub fn sync() {
 
             copy(&mut content, &mut dest).expect("Failed to copy downloaded content");
 
-            update_cached_repos(&i.name, &String::from_utf8(hash.as_ref().to_vec()).expect("Failed to convert hash to string"));
+            update_cached_repos(&i.name, &String::from_utf8(hash).expect("Failed to convert hash to string"));
 
             break;
         }
