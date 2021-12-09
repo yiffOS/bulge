@@ -8,6 +8,7 @@ use sha2::Digest;
 use crate::util::config::fns::get_sources;
 use crate::util::database::fns::update_cached_repos;
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
+use crate::util::macros::get_root;
 use crate::util::mirrors::load_mirrors;
 
 pub fn sync() {
@@ -55,7 +56,7 @@ pub fn sync() {
                     .and_then(|name| if name.is_empty() {None} else { Some(name) })
                     .expect("Empty file name?");
 
-                File::create(format!("/etc/bulge/databases/cache/{}.db", i.name)).expect("Failed to save downloaded database!")
+                File::create(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to save downloaded database!")
             };
 
             let mut content = Cursor::new(executor::block_on(db_response_unwrap.bytes()).expect("Failed to read database bytes"));

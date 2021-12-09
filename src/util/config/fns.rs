@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use crate::util::database::structs::Source;
 use crate::util::config::structs::{ConfigEntries, ConfigError, Config, RepoEntries, RepoNode};
+use crate::util::macros::get_root;
 
 
 /// Returns a string of the requested config entry, optionally returns a config entry within a repo.
@@ -11,7 +12,7 @@ pub fn get_config_entry(entry: ConfigEntries, repo: Option<String>, repo_entry: 
     // Load config file
     let mut x = String::new();
     
-    File::open("/etc/bulge/config.json")
+    File::open(get_root() + "/etc/bulge/config.json")
         .expect("Failed to open config file, is another process accessing it?")
         .read_to_string(&mut x)
         .expect("Failed to convert file to string");
@@ -55,7 +56,7 @@ fn get_repo_vec() -> Vec<RepoNode> {
         // Load config file
         let mut x = String::new();
     
-        File::open("/etc/bulge/config.json")
+        File::open(get_root() + "/etc/bulge/config.json")
             .expect("Failed to open config file, is another process accessing it?")
             .read_to_string(&mut x)
             .expect("Failed to convert file to string");

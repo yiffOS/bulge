@@ -3,6 +3,7 @@ use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_stri
 use std::{time::{SystemTime, UNIX_EPOCH}, vec};
 use crate::util::config::fns::get_sources;
 use std::{error::Error, fmt};
+use crate::util::macros::get_root;
 
 use super::structs::InstalledPackages;
 
@@ -19,7 +20,7 @@ impl fmt::Display for PackageDBError {
 
 /// Creates a database containing locally installed packages and various information
 pub fn init_database() {
-    let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to create package database");
+    let conn = Connection::open(get_root() + "/etc/bulge/databases/bulge.db").expect("Failed to create package database");
 
     conn.execute(
         "create table if not exists installed_packages
@@ -58,7 +59,7 @@ pub fn init_database() {
 
 /// Adds a package to the installed packages database
 pub fn add_package_to_installed(package: NewPackage, source: Source) {
-    let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to create package database");
+    let conn = Connection::open(get_root() + "/etc/bulge/databases/bulge.db").expect("Failed to create package database");
 
     // Convert installed files into a string
     let installed_files: String = vec_to_string(package.installed_files);
@@ -85,7 +86,7 @@ pub fn add_package_to_installed(package: NewPackage, source: Source) {
 
 /// Returns files owned by a package
 pub fn return_owned_files(package: &String) -> Result<Vec<String>, rusqlite::Error> {
-    let conn = Connection::open("/etc/bulge/databases/bulge.db")?;
+    let conn = Connection::open(get_root() + "/etc/bulge/databases/bulge.db")?;
     let mut files: Vec<String> = vec![];
 
     let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE name = ?")?;
@@ -110,7 +111,7 @@ pub fn return_owned_files(package: &String) -> Result<Vec<String>, rusqlite::Err
 
 /// Removes a package from the installed packages database
 pub fn remove_package_from_installed(package: &String) -> Result<(), rusqlite::Error>{
-    let conn = Connection::open("/etc/bulge/databases/bulge.db")?;
+    let conn = Connection::open(get_root() + "/etc/bulge/databases/bulge.db")?;
 
     conn.execute("DELETE FROM installed_packages WHERE name = ?1",
     params![package])?;
@@ -123,7 +124,7 @@ pub fn search_for_package(package: &String) -> String {
     let mut repo = String::new();
 
     for i in get_sources() {
-        let conn = Connection::open(format!("/etc/bulge/databases/cache/{}.db", i.name)).expect("Failed to open database");
+        let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to open database");
 
         let mut statement = conn.prepare("SELECT * FROM packages WHERE name = ?").expect("Failed to prepare statement");
         let mut rows = statement.query([package]).expect("Failed to run query");
@@ -141,7 +142,7 @@ pub fn search_for_package(package: &String) -> String {
 }
 
 pub fn update_cached_repos(repo: &String, repo_hash: &String) {
-    let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to create package database");
+    let conn = Connection::open(get_root() + "/etc/bulge/databases/bulge.db").expect("Failed to create package database");
 
     let current_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -160,7 +161,7 @@ pub fn update_cached_repos(repo: &String, repo_hash: &String) {
 
 // TODO: Change this to provides?
 pub fn get_installed_package(package: &String) -> Result<InstalledPackages, PackageDBError> {
-    let conn = Connection::open("/etc/bulge/databases/bulge.db").expect("Failed to open database");
+    let conn = Connection::open(get_root() + "/etc/bulge/databases/bulge.db").expect("Failed to open database");
 
     let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE name = ?").expect("Failed to prepare statement");
 
