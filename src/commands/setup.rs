@@ -1,11 +1,12 @@
 use std::fs;
-use crate::util::lock::{lock_exists, create_lock, remove_lock};
-use crate::util::database::fns::init_database;
 use std::io::Write;
+
 use crate::commands::setup_files::static_files::{default_config, default_mirrorlist};
 use crate::commands::sync::sync;
+use crate::util::database::fns::init_database;
+use crate::util::lock::{create_lock, lock_exists, remove_lock};
 
-pub async fn init() {
+pub fn init() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
 
     lock_exists();
@@ -48,7 +49,7 @@ pub async fn init() {
     println!("The databases will now be synced with the mirrors.");
     println!();
     remove_lock().expect("Failed to remove lock?"); // Work around for lock issues
-    sync().await;
+    sync();
 
     println!();
     println!("Setup complete!");

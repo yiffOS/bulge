@@ -1,7 +1,7 @@
 use std::vec;
 
-use crate::util::lock::{create_lock, remove_lock, lock_exists};
 use crate::util::database::fns::search_for_package;
+use crate::util::lock::{create_lock, lock_exists, remove_lock};
 
 pub fn install(args: Vec<String>) {
     if args.len() < 3 {

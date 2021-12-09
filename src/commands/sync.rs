@@ -1,12 +1,16 @@
-use crate::util::lock::{create_lock, remove_lock, lock_exists};
-use crate::util::config::fns::get_sources;
-use crate::util::mirrors::load_mirrors;
-use crate::util::database::fns::update_cached_repos;
-use reqwest::{StatusCode, Response};
 use std::fs::File;
 use std::io::{copy, Cursor};
 
-pub async fn sync() {
+use futures::executor;
+use reqwest::{Response, StatusCode};
+use sha2::Digest;
+
+use crate::util::config::fns::get_sources;
+use crate::util::database::fns::update_cached_repos;
+use crate::util::lock::{create_lock, lock_exists, remove_lock};
+use crate::util::mirrors::load_mirrors;
+
+pub fn sync() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
 
     lock_exists();
@@ -29,7 +33,7 @@ pub async fn sync() {
                 url = format!("{}/database.db", x.replace("$repo", &*i.name));
             }
 
-            let db_response = reqwest::get(&url).await;
+            let db_response = executor::block_on(reqwest::get(&url));
 
             if db_response.is_err() {
                 println!("Failed to get {}. Error: {}", &url, db_response.err().unwrap());
@@ -54,7 +58,7 @@ pub async fn sync() {
                 File::create(format!("/etc/bulge/databases/cache/{}.db", i.name)).expect("Failed to save downloaded database!")
             };
 
-            let mut content = Cursor::new(db_response_unwrap.bytes().await.expect("Failed to read downloaded content"));
+            let mut content = Cursor::new(executor::block_on(db_response_unwrap.bytes()).expect("Failed to read database bytes"));
 
             println!("Downloaded database for {}!", i.name);
 
@@ -68,8 +72,7 @@ pub async fn sync() {
                 hash_url = format!("{}/database.hash", x.replace("$repo", &*i.name));
             }
 
-            let hash_response = reqwest::get(&hash_url)
-                .await;
+            let hash_response = executor::block_on(reqwest::get(&hash_url));
 
             if hash_response.is_err() {
                 println!("Failed to get {}. Error: {}", &hash_url, hash_response.err().unwrap());
@@ -83,25 +86,23 @@ pub async fn sync() {
                 continue;
             }
 
-            let hash = hash_response_unwrap.text().await.expect("Failed to convert hash to string");
+            let hash = executor::block_on(hash_response_unwrap.bytes()).expect("Failed to read hash bytes");
 
-            //let mut sha512 = sha2::Sha512::new();
+            let mut sha512 = sha2::Sha512::new();
 
-            //sha512.update(content.clone());
-            //let hash_result = sha512.finalize();
+            sha512.update(content.get_ref());
+            let hash_result = sha512.finalize();
 
-            /* FIXME: Figure out how to convert the string hash to [u8]
-            if &hash_result[..] != hex!("{}", hash) {
+            if &hash_result[..] != hash.as_ref() {
                 println!("Database for {} failed to match with provided hash. Trying next mirror.", hash_url);
                 continue;
             }
-             */
 
             println!("Downloaded hash for {}!", i.name);
 
             copy(&mut content, &mut dest).expect("Failed to copy downloaded content");
 
-            update_cached_repos(&i.name, &hash);
+            update_cached_repos(&i.name, &String::from_utf8(hash.as_ref().to_vec()).expect("Failed to convert hash to string"));
 
             break;
         }

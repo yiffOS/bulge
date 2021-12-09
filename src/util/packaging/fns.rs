@@ -1,10 +1,10 @@
-use std::{fs::{self, File}, vec};
+use std::{env, fs::{self, File}, vec};
+use std::path::Path;
 
+use tar::Archive;
 use text_io::read;
 use version_compare::Version;
 use xz2::read::XzDecoder;
-use tar::Archive;
-use std::path::Path;
 
 use crate::util::{database::{fns::{add_package_to_installed, get_installed_package, remove_package_from_installed, return_owned_files}, structs::Source}, lock::remove_lock, packaging::structs::{NewPackage, Package}};
 

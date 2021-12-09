@@ -1,4 +1,5 @@
 use rusqlite::Connection;
+
 use crate::util::database::structs::InstalledPackages;
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
 use crate::util::macros::string_to_vec;

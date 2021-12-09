@@ -1,8 +1,8 @@
-use std::path::Path;
 use std::fs;
+use std::path::Path;
 
 use crate::util::database::structs::Source;
-use crate::util::lock::{create_lock, remove_lock, lock_exists};
+use crate::util::lock::{create_lock, lock_exists, remove_lock};
 use crate::util::packaging::fns::{check_if_package, decompress_xz, run_install};
 
 pub fn local_install(args: Vec<String>) {

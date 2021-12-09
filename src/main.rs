@@ -1,21 +1,14 @@
+use std::env;
+
 mod commands;
 mod util;
-
-use std::env;
-use xdg::BaseDirectories;
 
 /// Get a static string of the current bulge version
 pub fn get_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
 }
 
-/// Get a XDG base directory
-pub fn get_xdg_direct() -> BaseDirectories {
-    BaseDirectories::with_prefix("bulge").expect("Error getting XDG base directories.")
-}
-
-#[tokio::main(flavor = "current_thread")]
-async fn main() {
+fn main() {
     let args: Vec<String> = env::args().collect();
 
     // Check if any command was supplied
@@ -32,8 +25,8 @@ async fn main() {
         "--help" => commands::help::help(),
 
         // Sync commands
-        "s" => commands::sync::sync().await,
-        "sync" => commands::sync::sync().await,
+        "s" => commands::sync::sync(),
+        "sync" => commands::sync::sync(),
 
         // Upgrade commands
         "u" => commands::upgrade::upgrade(),
@@ -55,7 +48,7 @@ async fn main() {
         "list" => commands::list::list(),
 
         // Internal commands for setup
-        "setup" => commands::setup::init().await,
+        "setup" => commands::setup::init(),
 
         // Specify that command is invalid and show help command
         _ => {
