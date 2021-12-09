@@ -151,6 +151,9 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     data_tar
         .unpack(get_root() + "/")
         .expect("Extraction error!");
+
+    // Clean files up
+    fs::remove_dir_all(format!("{}/tmp/bulge/{}", get_root(), tmp_path)).expect("Failed to delete temp path!");
     
     println!();
     println!("Installed {} v{}!", &package.name, &package.version);
