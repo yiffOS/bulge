@@ -19,6 +19,7 @@ impl fmt::Debug for ConfigError {
 /// All possible config entries.
 pub enum ConfigEntries {
     Architecture,
+    Toolchain,
     Colour,
     Progressbar,
     Repos
@@ -35,6 +36,7 @@ pub enum RepoEntries {
 #[derive(Deserialize)]
 pub(super) struct Config {
     pub(super) architecture: String,
+    pub(super) toolchain: String,
     pub(super) colour: bool,
     pub(super) progressbar: bool,
     pub(super) repos: Vec<RepoNode>

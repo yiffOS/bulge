@@ -21,6 +21,7 @@ pub fn get_config_entry(entry: ConfigEntries, repo: Option<String>, repo_entry: 
 
     match entry {
         ConfigEntries::Architecture => Ok(config.architecture),
+        ConfigEntries::Toolchain => Ok(config.toolchain),
         ConfigEntries::Colour => Ok(config.colour.to_string()),
         ConfigEntries::Progressbar => Ok(config.progressbar.to_string()),
         ConfigEntries::Repos => {

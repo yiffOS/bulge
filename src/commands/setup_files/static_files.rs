@@ -1,6 +1,7 @@
 pub fn default_config() -> &'static str {
     r#"{
         "architecture": "x86_64",
+        "toolchain": "knot",
         "colour": true,
         "progressbar": true,
         "repos": [
@@ -28,5 +29,5 @@ pub fn default_config() -> &'static str {
 pub fn default_mirrorlist() -> &'static str {
     r#"# yiffOS default mirror list
 
-https://repo.yiffos.gay/$arch/$repo"#
+https://repo.yiffos.gay/$repo/$arch/$toolchain"#
 }
