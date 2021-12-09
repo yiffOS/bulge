@@ -1,9 +1,11 @@
 use std::fs::File;
-use std::io::{copy, Cursor};
+use std::io::{copy, Cursor, Read};
 use futures::SinkExt;
 
 use isahc::http::StatusCode;
-use sha2::Digest;
+use ring::digest::{Context, SHA512};
+
+use hex::ToHex;
 
 use crate::util::config::fns::get_sources;
 use crate::util::database::fns::update_cached_repos;
@@ -84,14 +86,23 @@ pub fn sync() {
                 continue;
             }
 
-            let hash = hash_response_unwrap.bytes().expect("Failed to read hash bytes");
+            let hash = hash_response_unwrap.bytes().expect("Failed to read database bytes");
+            let hash_string = String::from_utf8(hash.clone()).expect("Failed to convert hash to string");
 
-            let mut sha512 = sha2::Sha512::new();
+            let mut context = Context::new(&SHA512);
+            let mut buffer = [0; 1024];
 
-            sha512.update(content.get_ref());
-            let hash_result = sha512.finalize();
+            loop {
+                let read = content.read(&mut buffer).expect("Failed to read database.db! Aborting...");
+                if read == 0 {
+                    break;
+                }
+                context.update(&buffer[..read]);
+            }
 
-            if &hash_result[..] != hash {
+            let generated_hash = context.finish();
+
+            if generated_hash.as_ref().encode_hex::<String>() != hash_string {
                 println!("Database for {} failed to match with provided hash. Trying next mirror.", hash_url);
                 continue;
             }
@@ -100,7 +111,7 @@ pub fn sync() {
 
             copy(&mut content, &mut dest).expect("Failed to copy downloaded content");
 
-            update_cached_repos(&i.name, &String::from_utf8(hash).expect("Failed to convert hash to string"));
+            update_cached_repos(&i.name, &hash_string);
 
             break;
         }
