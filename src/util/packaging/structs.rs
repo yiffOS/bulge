@@ -1,6 +1,5 @@
 use serde::Deserialize;
 
-
 #[derive(Deserialize)]
 pub struct Package {
     pub name: String,
@@ -24,4 +23,10 @@ pub struct NewPackage {
     pub version: String,
     pub epoch: i32,
     pub installed_files: Vec<String>
+}
+
+pub struct RequestPackage {
+    pub name: String,
+    pub version: String,
+    pub epoch: i32
 }

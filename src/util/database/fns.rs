@@ -3,6 +3,7 @@ use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_stri
 use std::{time::{SystemTime, UNIX_EPOCH}, vec};
 use crate::util::config::fns::get_sources;
 use std::{error::Error, fmt};
+use crate::util::database::structs::RemotePackage;
 use crate::util::macros::get_root;
 
 use super::structs::InstalledPackages;
@@ -189,3 +190,32 @@ pub fn get_installed_package(package: &String) -> Result<InstalledPackages, Pack
     return Err(PackageDBError);
 }
 
+pub fn get_remote_package(package: &String, repo: &String) -> Result<Package, PackageDBError> {
+    let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), repo)).expect("Failed to open database");
+
+    let mut statement = conn.prepare("SELECT * FROM packages WHERE name = ?").expect("Failed to prepare statement");
+
+    let result = statement.query_map([package], | package | {
+        return Ok(Package{
+            name: package.get(0).unwrap(),
+            version: package.get(1).unwrap(),
+            epoch: package.get(2).unwrap(),
+            description: package.get(3).unwrap(),
+            groups: package.get(4).unwrap(),
+            url: package.get(5).unwrap(),
+            license: package.get(6).unwrap(),
+            depends: package.get(7).unwrap(),
+            optional_depends: package.get(8).unwrap(),
+            provides: package.get(9).unwrap(),
+            conflicts: package.get(10).unwrap(),
+            replaces: package.get(11).unwrap(),
+            sha512sum: package.get(12).unwrap()
+        });
+    }).expect("DB Error!");
+
+    for pkg in result {
+        return Ok(pkg.unwrap());
+    }
+
+    return Err(PackageDBError);
+}
