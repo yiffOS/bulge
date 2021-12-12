@@ -34,9 +34,9 @@ pub fn check_if_package(mut xztar: Archive<XzDecoder<File>>) -> bool {
 pub fn run_install(file: File, tmp_path: &str, source: Source) {
     let mut package_tar = decompress_xz(file);
 
-    package_tar.unpack(format!("/tmp/bulge/{}", tmp_path)).unwrap();
+    package_tar.unpack(format!("{}/tmp/bulge/{}", get_root(), tmp_path)).unwrap();
 
-    let package = decode_pkg_file(fs::File::open(format!("/tmp/bulge/{}/PKG", tmp_path))
+    let package = decode_pkg_file(fs::File::open(format!("{}/tmp/bulge/{}/PKG", get_root(), tmp_path))
         .expect("Failed to open PKG file!"));
 
     // TODO: Check for conflicting packages
@@ -79,7 +79,7 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     }
 
     // Decompress data
-    let mut data_tar_files = decompress_xz(fs::File::open(format!("/tmp/bulge/{}/data.tar.xz", tmp_path)).expect("Failed to read package!"));
+    let mut data_tar_files = decompress_xz(fs::File::open(format!("{}/tmp/bulge/{}/data.tar.xz", get_root(), tmp_path)).expect("Failed to read package!"));
 
     // Calculate files to be installed and extract to temp folder
     let mut files: Vec<String> = vec![];
@@ -122,7 +122,7 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
             for i in &files {
                 if !installed_pkg.is_ok() && Path::new(format!("{}{}", get_root(), &i).as_str()).exists() {
                     println!("DELETING {}!", i);
-                    fs::remove_file(i).expect("Failed to delete file!");
+                    fs::remove_file(get_root() + i).expect("Failed to delete file!");
                 }
             }
         }
@@ -140,7 +140,7 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
     println!("Decompressing files...");
     
     // Open data tar for extraction
-    let mut data_tar = decompress_xz(fs::File::open(format!("/tmp/bulge/{}/data.tar.xz", tmp_path)).expect("Failed to read package!"));
+    let mut data_tar = decompress_xz(fs::File::open(format!("{}/tmp/bulge/{}/data.tar.xz", get_root(), tmp_path)).expect("Failed to read package!"));
 
     println!("Unpacking files...");
 
