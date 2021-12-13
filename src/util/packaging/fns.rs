@@ -8,6 +8,7 @@ use xz2::read::XzDecoder;
 
 use crate::util::{database::{fns::{add_package_to_installed, get_installed_package, remove_package_from_installed, return_owned_files}, structs::Source}, lock::remove_lock, packaging::structs::{NewPackage, Package}};
 use crate::util::macros::get_root;
+use crate::util::transactions::conflict::run_conflict_check;
 
 pub fn decompress_xz(compressed_tar: File) -> Archive<XzDecoder<File>> {
     return Archive::new(XzDecoder::new(compressed_tar));
@@ -95,15 +96,9 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
 
     println!();
     println!("Looking for conflicting files...");
-    let mut conflict = false;
-    for i in &files {
-        if !installed_pkg.is_ok() && Path::new(format!("{}{}", get_root(), &i).as_str()).exists() {
-            println!("{} already exists!", i);
-            conflict = true;
-        }
-    }
+    let conflicting = run_conflict_check(&files, installed_pkg.is_ok(), get_root());
 
-    if conflict {
+    if conflicting.is_conflict {
         eprintln!("Package files already exist on the file system!");
 
         println!("Continue? THIS WILL DELETE FILES! [y/N]");
@@ -118,12 +113,9 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
         } else {
             println!("Continuing install!");
 
-            // Redo the loop but delete files now
-            for i in &files {
-                if !installed_pkg.is_ok() && Path::new(format!("{}{}", get_root(), &i).as_str()).exists() {
-                    println!("DELETING {}!", i);
-                    fs::remove_file(get_root() + i).expect("Failed to delete file!");
-                }
+            for i in conflicting.files {
+                println!("Removing {}", i);
+                fs::remove_file(i).expect("Failed to delete file!");
             }
         }
     }
