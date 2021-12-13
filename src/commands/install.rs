@@ -5,18 +5,19 @@ use std::collections::HashSet;
 use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
 use rusqlite::Error;
+use text_io::read;
 use crate::util::config::fns::get_sources;
 
 use crate::util::database::fns::{get_remote_package, search_for_package};
 use crate::util::database::structs::{RemotePackage, Source};
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
-use crate::util::macros::{get, get_root};
+use crate::util::macros::{get, get_root, hashset_to_display_string};
 use crate::util::mirrors::load_mirrors;
 use crate::util::packaging::fns::run_install;
-use crate::util::packaging::structs::RequestPackage;
+use crate::util::packaging::structs::{Package, RequestPackage};
 use crate::util::transactions::dependencies::{run_depend_check, run_depend_resolve};
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 struct Packages {
     name: String,
     repo: String
@@ -38,6 +39,7 @@ pub fn install(args: Vec<String>) {
     let requested_packages: Vec<String> = args.clone().drain(2..).collect();
     let mut packages: HashSet<Packages> = HashSet::new();
 
+    println!("==> Resolving packages and dependencies...");
     for i in &requested_packages {
         let repo = search_for_package(&i);
 
@@ -56,7 +58,6 @@ pub fn install(args: Vec<String>) {
             repo: repo_unwrap.clone()
         });
 
-        println!("==> Resolving dependencies for {}...", &i);
         let remote_package = get_remote_package(&i, &repo_unwrap).expect("Failed to get remote package.");
 
         if remote_package.depends.is_empty() {
@@ -88,6 +89,30 @@ pub fn install(args: Vec<String>) {
                 });
             }
         }
+    }
+
+    println!("==> Checking for already installed packages...");
+    // TODO: Check for already installed packages and collect them into a hashset to display
+    let mut installed_packages: HashSet<Package> = HashSet::new();
+
+    println!("==> Looking for package conflicts...");
+    // TODO: Check for conflicts
+
+    println!("==> Generating install queue...");
+    let mut queue: HashSet<Package> = HashSet::new();
+    for i in packages.clone() {
+        queue.insert(get_remote_package(&i.name, &i.repo).expect("Failed to get remote package."));
+    }
+
+    println!("\nPackages to install [{}]: {}\n", packages.len(), hashset_to_display_string(queue.clone()));
+
+    print!("Continue? [y/N]: ");
+
+    let s: String = read!();
+    if !(s.to_lowercase() == "y".parse::<String>().unwrap()) {
+        println!("Abandoning install!");
+        remove_lock().expect("Failed to remove lock?");
+        std::process::exit(1);
     }
 
     for i in packages {
