@@ -1,17 +1,18 @@
-use std::fs::File;
-use std::io::Write;
 use std::{fs, vec};
 use std::collections::HashSet;
+use std::fs::File;
+use std::io::Write;
+
 use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
 use rusqlite::Error;
 use text_io::read;
-use crate::util::config::fns::get_sources;
 
+use crate::util::config::fns::get_sources;
 use crate::util::database::fns::{get_remote_package, search_for_package};
 use crate::util::database::structs::{RemotePackage, Source};
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
-use crate::util::macros::{get, get_root, hashset_to_display_string};
+use crate::util::macros::{display_installing_packages, get, get_root};
 use crate::util::mirrors::load_mirrors;
 use crate::util::packaging::fns::run_install;
 use crate::util::packaging::structs::{Package, RequestPackage};
@@ -104,7 +105,7 @@ pub fn install(args: Vec<String>) {
         queue.insert(get_remote_package(&i.name, &i.repo).expect("Failed to get remote package."));
     }
 
-    println!("\nPackages to install [{}]: {}\n", packages.len(), hashset_to_display_string(queue.clone()));
+    println!("\nPackages to install [{}]: {}\n", packages.len(), display_installing_packages(queue.clone()));
 
     print!("Continue? [y/N]: ");
 

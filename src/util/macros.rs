@@ -20,7 +20,7 @@ pub fn vec_to_string(vec: Vec<String>) -> String {
     temp_string
 }
 
-pub fn hashset_to_display_string(set: HashSet<Package>) -> String {
+pub fn display_installing_packages(set: HashSet<Package>) -> String {
     let mut temp_string: String = String::new();
     for i in set {
         temp_string.push_str(&*i.name);
