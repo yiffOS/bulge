@@ -1,7 +1,7 @@
 use std::{fs, vec};
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::io::Write;
+use std::io::{stdin, stdout, Write};
 
 use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
@@ -12,7 +12,7 @@ use crate::util::config::fns::get_sources;
 use crate::util::database::fns::{get_remote_package, search_for_package};
 use crate::util::database::structs::{RemotePackage, Source};
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
-use crate::util::macros::{display_installing_packages, get, get_root};
+use crate::util::macros::{continue_prompt, display_installing_packages, get, get_root};
 use crate::util::mirrors::load_mirrors;
 use crate::util::packaging::fns::run_install;
 use crate::util::packaging::structs::{Package, RequestPackage};
@@ -100,17 +100,17 @@ pub fn install(args: Vec<String>) {
     // TODO: Check for conflicts
 
     println!("==> Generating install queue...");
-    let mut queue: HashSet<Package> = HashSet::new();
+    let mut queue: HashMap<Package, String> = HashMap::new();
     for i in packages.clone() {
-        queue.insert(get_remote_package(&i.name, &i.repo).expect("Failed to get remote package."));
+        queue.insert(
+            get_remote_package(&i.name, &i.repo).expect("Failed to get remote package."),
+            i.repo.clone()
+        );
     }
 
     println!("\nPackages to install [{}]: {}\n", packages.len(), display_installing_packages(queue.clone()));
 
-    print!("Continue? [y/N]: ");
-
-    let s: String = read!();
-    if !(s.to_lowercase() == "y".parse::<String>().unwrap()) {
+    if !(continue_prompt()) {
         println!("Abandoning install!");
         remove_lock().expect("Failed to remove lock?");
         std::process::exit(1);

@@ -1,5 +1,6 @@
-use std::collections::HashSet;
-use std::env;
+use std::collections::{HashMap, HashSet};
+use std::{env, io};
+use std::io::Write;
 use isahc::http::Error;
 use isahc::{Body, Request, Response};
 use isahc::config::RedirectPolicy;
@@ -20,14 +21,14 @@ pub fn vec_to_string(vec: Vec<String>) -> String {
     temp_string
 }
 
-pub fn display_installing_packages(set: HashSet<Package>) -> String {
+pub fn display_installing_packages(set: HashMap<Package, String>) -> String {
     let mut temp_string: String = String::new();
     for i in set {
-        temp_string.push_str(&*i.name);
+        temp_string.push_str(&*i.0.name);
         temp_string.push_str("-");
-        temp_string.push_str(&*i.version);
+        temp_string.push_str(&*i.0.version);
         temp_string.push_str("-");
-        temp_string.push_str(&*i.epoch.to_string());
+        temp_string.push_str(&*i.0.epoch.to_string());
         temp_string.push_str(" ");
     }
     temp_string
@@ -52,4 +53,19 @@ pub fn get(url: &String) -> Result<Response<Body>, isahc::Error> {
             .redirect_policy(RedirectPolicy::Follow)
             .body(())?
             .send();
+}
+
+pub fn continue_prompt() -> bool {
+    let mut input = String::new();
+
+    print!("Continue? [y/n]: ");
+
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut input).unwrap();
+
+    if input.trim().to_lowercase() == "y" {
+        return true;
+    }
+
+    return false;
 }
