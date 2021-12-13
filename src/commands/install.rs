@@ -1,6 +1,7 @@
 use std::fs::File;
 use std::io::Write;
 use std::{fs, vec};
+use std::collections::HashSet;
 use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
 use rusqlite::Error;
@@ -13,7 +14,9 @@ use crate::util::macros::{get, get_root};
 use crate::util::mirrors::load_mirrors;
 use crate::util::packaging::fns::run_install;
 use crate::util::packaging::structs::RequestPackage;
+use crate::util::transactions::dependencies::{run_depend_check, run_depend_resolve};
 
+#[derive(PartialEq, Eq, Hash)]
 struct Packages {
     name: String,
     repo: String
@@ -33,7 +36,7 @@ pub fn install(args: Vec<String>) {
     create_lock().expect("Failed to create lock file. (Does /tmp/bulge.funny already exist?)");
 
     let requested_packages: Vec<String> = args.clone().drain(2..).collect();
-    let mut packages: Vec<Packages> = vec![];
+    let mut packages: HashSet<Packages> = HashSet::new();
 
     for i in &requested_packages {
         let repo = search_for_package(&i);
@@ -46,10 +49,45 @@ pub fn install(args: Vec<String>) {
             std::process::exit(1);
         }
 
-        packages.push(Packages {
+        let repo_unwrap = repo.unwrap();
+
+        packages.insert(Packages {
             name: i.clone(),
-            repo: repo.unwrap()
+            repo: repo_unwrap.clone()
         });
+
+        println!("==> Resolving dependencies for {}...", &i);
+        let remote_package = get_remote_package(&i, &repo_unwrap).expect("Failed to get remote package.");
+
+        if remote_package.depends.is_empty() {
+            // Let's not check for depends as there is none
+            continue;
+        }
+
+        let checked_deps = run_depend_check(
+            run_depend_resolve(
+                get_remote_package(&i, &repo_unwrap).expect("Failed to get remote package.")
+            )
+        );
+
+        for x in checked_deps.iter() {
+            if !x.1 {
+                let repo = search_for_package(&x.0);
+
+                if repo.is_err() {
+                    eprintln!("ERR> {} was not found! Aborting...", i);
+
+                    remove_lock().expect("Failed to remove lock?");
+
+                    std::process::exit(1);
+                }
+
+                packages.insert(Packages {
+                    name: x.0.clone(),
+                    repo: repo.unwrap()
+                });
+            }
+        }
     }
 
     for i in packages {

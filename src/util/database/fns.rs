@@ -3,6 +3,7 @@ use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_stri
 use std::{time::{SystemTime, UNIX_EPOCH}, vec};
 use crate::util::config::fns::get_sources;
 use std::{error::Error, fmt};
+use std::collections::HashSet;
 use crate::util::database::structs::RemotePackage;
 use crate::util::macros::get_root;
 
@@ -193,9 +194,15 @@ pub fn get_installed_package(package: &String) -> Result<InstalledPackages, Pack
 pub fn get_remote_package(package: &String, repo: &String) -> Result<Package, PackageDBError> {
     let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), repo)).expect("Failed to open database");
 
-    let mut statement = conn.prepare("SELECT * FROM packages WHERE name = ?").expect("Failed to prepare statement");
+    let statement = conn.prepare("SELECT * FROM packages WHERE name = ?");
 
-    let result = statement.query_map([package], | package | {
+    if statement.is_err() {
+        return Err(PackageDBError);
+    }
+
+    let mut unwrap_statement = statement.unwrap();
+
+    let result = unwrap_statement.query_map([package], | package | {
         return Ok(Package{
             name: package.get(0).unwrap(),
             version: package.get(1).unwrap(),
@@ -218,4 +225,31 @@ pub fn get_remote_package(package: &String, repo: &String) -> Result<Package, Pa
     }
 
     return Err(PackageDBError);
+}
+
+
+/// Get top-level dependencies for a package
+pub fn get_dependencies(package_name: String) -> Vec<Package> {
+    let mut dependencies: Vec<Package> = Vec::new();
+
+    let pkg_repo = search_for_package(&package_name);
+
+    if pkg_repo.is_err() {
+        return dependencies;
+    }
+
+    let pkg_repo_unwrap = pkg_repo.unwrap();
+
+    let mut pkg = get_remote_package(&package_name, &pkg_repo_unwrap).expect("Failed to get package");
+
+    if pkg.depends.is_empty() {
+        return dependencies;
+    }
+
+    for dep in pkg.depends.split(",") {
+        let mut dep_pkg = get_remote_package(&dep.to_string(), &pkg_repo_unwrap).expect("Failed to get package");
+        dependencies.push(dep_pkg);
+    }
+
+    return dependencies;
 }
