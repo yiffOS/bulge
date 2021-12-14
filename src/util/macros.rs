@@ -58,7 +58,7 @@ pub fn get(url: &String) -> Result<Response<Body>, isahc::Error> {
 pub fn continue_prompt() -> bool {
     let mut input = String::new();
 
-    print!("Continue? [y/n]: ");
+    print!("Continue? [y/N]: ");
 
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut input).unwrap();
