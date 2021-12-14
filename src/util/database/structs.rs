@@ -14,6 +14,7 @@ pub struct RemotePackage {
     pub sha512sum: String
 }
 
+#[derive(Clone)]
 pub struct InstalledPackages {
     pub name: String,
     pub groups: Vec<String>,
@@ -23,6 +24,7 @@ pub struct InstalledPackages {
     pub installed_files: Vec<String>
 }
 
+#[derive(PartialEq, Eq, Hash)]
 pub struct Source {
     pub name: String,
     pub url: Option<String>

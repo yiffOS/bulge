@@ -5,6 +5,7 @@ use std::io::{stdin, stdout, Write};
 
 use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
+use ring::test::run;
 use rusqlite::Error;
 use text_io::read;
 
@@ -14,9 +15,9 @@ use crate::util::database::structs::{RemotePackage, Source};
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
 use crate::util::macros::{continue_prompt, display_installing_packages, get, get_root};
 use crate::util::mirrors::load_mirrors;
-use crate::util::packaging::fns::run_install;
 use crate::util::packaging::structs::{Package, RequestPackage};
 use crate::util::transactions::dependencies::{run_depend_check, run_depend_resolve};
+use crate::util::transactions::install::{InstallTransaction, run_install};
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 struct Packages {
@@ -108,7 +109,7 @@ pub fn install(args: Vec<String>) {
         );
     }
 
-    println!("\nPackages to install [{}]: {}\n", packages.len(), display_installing_packages(queue.clone()));
+    println!("\nPackages to install [{}]: {}\n", queue.len(), display_installing_packages(queue.clone()));
 
     if !(continue_prompt()) {
         println!("Abandoning install!");
@@ -116,20 +117,16 @@ pub fn install(args: Vec<String>) {
         std::process::exit(1);
     }
 
-    for i in packages {
-        let remote_package = get_remote_package(&i.name, &i.repo).expect("Failed to get remote package.");
+    println!("\n==> Downloading packages...");
 
-        let mut package = RequestPackage{
-            name: remote_package.name.clone(),
-            version: remote_package.version.clone(),
-            epoch: remote_package.epoch.clone()
-        };
+    let mut filequeue: HashMap<InstallTransaction, File> = HashMap::new();
 
-        println!("==> Downloading {} v{}-{}...", &package.name, &package.version, &package.epoch);
+    for i in queue.clone() {
+        println!("=> Downloading {} v{}-{}...", &i.0.name, &i.0.version, &i.0.epoch);
 
         for x in load_mirrors() {
-            let url = format!("{}/{}-{}-{}.tar.xz", x.replace("$repo", &*i.repo),
-                              &package.name, &package.version, &package.epoch);
+            let url = format!("{}/{}-{}-{}.tar.xz", x.replace("$repo", &*i.1),
+                              &i.0.name, &i.0.version, &i.0.epoch);
 
             let mut downloaded_package = get(&url).expect("Failed to get package.");
 
@@ -139,27 +136,47 @@ pub fn install(args: Vec<String>) {
             }
 
             File::create(format!("{}/tmp/{}-{}-{}.tar.xz", get_root(),
-                                 &package.name, &package.version, &package.epoch))
+                                 &i.0.name, &i.0.version, &i.0.epoch))
                 .expect("Failed to create temporary file!")
                 .write_all(downloaded_package.bytes().expect("Failed to get bytes.").as_slice())
                 .expect("Failed to write to temporary file!");
 
             let mut file = File::open(format!("{}/tmp/{}-{}-{}.tar.xz", get_root(),
-                                              &package.name, &package.version, &package.epoch))
+                                              &i.0.name, &i.0.version, &i.0.epoch))
                 .expect("Failed to open temporary file!");
 
-            run_install(file, &package.name, Source { name: "core".to_string(), url: Some(url) });
-
-            fs::remove_file(format!("{}/tmp/{}-{}-{}.tar.xz", get_root(),
-                                    &package.name, &package.version, &package.epoch))
-                .expect("Failed to remove temporary file!");
+            filequeue.insert(InstallTransaction {
+                package: i.0.clone(),
+                source: Source { name: i.1, url: Some(url) }
+            }, file);
 
             break;
         }
-
-        println!("==> Installed {} v{}-{}!", &package.name, &package.version, &package.epoch);
     }
 
+    println!("\n==> Checking for file conflicts...");
+    // TODO: Split extraction from install for this?
+
+    println!("\n==> Installing packages...");
+
+    for i in filequeue {
+        println!("=> Installing {} v{}-{}...", &i.0.package.name, &i.0.package.version, &i.0.package.epoch);
+
+        run_install(i.0, i.1);
+    }
+
+    println!("\n==> Cleaning up...");
+
+    for i in queue {
+        fs::remove_dir_all(format!("{}/tmp/bulge/{}", get_root(), &i.0.name))
+            .expect("Failed to delete temp path!");
+
+        fs::remove_file(format!("{}/tmp/{}-{}-{}.tar.xz", get_root(),
+                                &i.0.name, &i.0.version, &i.0.epoch))
+            .expect("Failed to remove temporary file!");
+    }
+
+    println!("\n==> Complete!");
 
     remove_lock().expect("Failed to remove lock?");
 }
