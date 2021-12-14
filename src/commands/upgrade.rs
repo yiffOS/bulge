@@ -55,7 +55,10 @@ pub fn upgrade() {
     let mut padding: Vec<String> = vec!["0".to_string(), "1".to_string()];
     padding.append(&mut updates);
 
-    install(updates);
+    // Remove the lock as the install will takeover
+    remove_lock().expect("Failed to remove lock?");
+
+    install(padding);
 
     // remove_lock is done by install
 }
