@@ -67,11 +67,14 @@ pub fn install(args: Vec<String>) {
             continue;
         }
 
-        let checked_deps = run_depend_check(
-            run_depend_resolve(
-                get_remote_package(&i, &repo_unwrap).expect("Failed to get remote package.")
-            )
+        let mut dependencies: HashSet<String> = HashSet::new();
+
+        run_depend_resolve(
+            get_remote_package(&i, &repo_unwrap).expect("Failed to get remote package."),
+            &mut dependencies
         );
+
+        let checked_deps = run_depend_check(dependencies);
 
         for x in checked_deps.iter() {
             if !x.1 {

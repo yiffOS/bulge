@@ -1,30 +1,41 @@
 use std::collections::{HashMap, HashSet};
 use crate::util::database::fns::{get_dependencies, get_installed_package};
+use crate::util::lock::remove_lock;
 use crate::util::macros::string_to_vec;
 use crate::util::packaging::structs::Package;
 
 /// Returns a list of all dependencies for a given package.
-pub fn run_depend_resolve(package: Package) -> HashSet<String> {
-    let mut dependencies = HashSet::new();
-
+pub fn run_depend_resolve(package: Package, dependencies: &mut HashSet<String>) {
     if package.depends.is_empty() {
-        return dependencies;
+        return;
     }
 
     for dep in string_to_vec(package.depends) {
         // Insert top level dependency into set
         dependencies.insert(dep.clone());
 
-        // Check database to get dependencies of dependency
-        for deeper_dep in get_dependencies(dep.clone()) {
-            // Insert depend we're looking into in case it doesn't have any dependencies
-            dependencies.insert(deeper_dep.name.clone());
+        let deeper_dep = get_dependencies(dep.clone());
 
-            dependencies.extend(run_depend_resolve(deeper_dep));
+        if deeper_dep.is_err() {
+            eprintln!("FATAL ERROR> Could not resolve dependency {} for {}", dep, package.name);
+
+            remove_lock().expect("Could not remove lock file?");
+            std::process::exit(1);
+        }
+
+        // Check database to get dependencies of dependency
+        for depr_dep in deeper_dep.unwrap() {
+            if dependencies.contains(&depr_dep.name) {
+                // Circular dependency detected, let's not loop forever thanks
+                break;
+            }
+
+            // Insert depend we're looking into in case it doesn't have any dependencies
+            dependencies.insert(depr_dep.name.clone());
+
+            run_depend_resolve(depr_dep,  dependencies)
         }
     }
-
-    return dependencies;
 }
 
 /// Check to see if provided dependencies are installed.
