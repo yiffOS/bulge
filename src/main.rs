@@ -37,6 +37,8 @@ fn main() {
         "install" => commands::install::install(args),
         "li" => commands::localinstall::local_install(args),
         "localinstall" => commands::localinstall::local_install(args),
+        "gi" => commands::groupinstall::group_install(args),
+        "groupinstall" => commands::groupinstall::group_install(args),
 
         // Remove commands
         "r" => commands::remove::remove(args),

@@ -229,29 +229,23 @@ pub fn get_remote_package(package: &String, repo: &String) -> Result<Package, Pa
 
 
 /// Get top-level dependencies for a package
-pub fn get_dependencies(package_name: String) -> Vec<Package> {
+pub fn get_dependencies(package_name: String) -> Result<Vec<Package>, PackageDBError> {
     let mut dependencies: Vec<Package> = Vec::new();
 
-    let pkg_repo = search_for_package(&package_name);
+    let pkg_repo = search_for_package(&package_name)?;
 
-    if pkg_repo.is_err() {
-        return dependencies;
-    }
-
-    let pkg_repo_unwrap = pkg_repo.unwrap();
-
-    let mut pkg = get_remote_package(&package_name, &pkg_repo_unwrap).expect("Failed to get package");
+    let mut pkg = get_remote_package(&package_name, &pkg_repo)?;
 
     if pkg.depends.is_empty() {
-        return dependencies;
+        return Ok(dependencies);
     }
 
     for dep in pkg.depends.split(",") {
-        let mut dep_pkg = get_remote_package(&dep.to_string(), &pkg_repo_unwrap).expect("Failed to get package");
+        let mut dep_pkg = get_remote_package(&dep.to_string(), &pkg_repo)?;
         dependencies.push(dep_pkg);
     }
 
-    return dependencies;
+    return Ok(dependencies);
 }
 
 pub fn get_all_installed() -> Vec<InstalledPackages> {
@@ -267,6 +261,61 @@ pub fn get_all_installed() -> Vec<InstalledPackages> {
             version: package.get(3).unwrap(),
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+        });
+    }).expect("Failed to execute query");
+
+    return result.map(|r| r.unwrap()).collect();
+}
+
+/// Look for a group in a repo and return the repo it is present in
+pub fn search_for_group(group: &String) -> Result<String, PackageDBError> {
+    let mut repo = String::new();
+
+    for i in get_sources() {
+        let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), i.name)).expect("Failed to create package database");
+
+        // Fail silently and skip, this happens when the repo is empty
+        if conn.prepare("SELECT * FROM packages WHERE instr(groups, ?) > 0;").is_err() {
+            println!("WARN> Repo {} is empty", i.name);
+            continue;
+        }
+
+        let mut statement = conn.prepare("SELECT * FROM packages WHERE instr(groups, ?) > 0;").expect("Failed to prepare statement");
+        let mut rows = statement.query([group]).expect("Failed to query database");
+
+        while let Some(_) = rows.next().expect("Failed to get next row") {
+            repo = i.name.clone();
+        }
+
+        if !repo.is_empty() {
+            return Ok(repo)
+        }
+    }
+
+    return Ok(repo)
+}
+
+/// Get all packages in a requested group
+pub fn get_group(repo: &String, group: &String) -> Vec<Package> {
+    let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), repo)).expect("Failed to open package database");
+
+    let mut statement = conn.prepare("SELECT * FROM packages WHERE instr(groups, ?) > 0;").expect("Failed to create statement");
+
+    let result = statement.query_map([group], | package | {
+        return Ok(Package{
+            name: package.get(0).unwrap(),
+            version: package.get(1).unwrap(),
+            epoch: package.get(2).unwrap(),
+            description: package.get(3).unwrap(),
+            groups: package.get(4).unwrap(),
+            url: package.get(5).unwrap(),
+            license: package.get(6).unwrap(),
+            depends: package.get(7).unwrap(),
+            optional_depends: package.get(8).unwrap(),
+            provides: package.get(9).unwrap(),
+            conflicts: package.get(10).unwrap(),
+            replaces: package.get(11).unwrap(),
+            sha512sum: package.get(12).unwrap()
         });
     }).expect("Failed to execute query");
 
