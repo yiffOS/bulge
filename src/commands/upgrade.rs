@@ -42,17 +42,19 @@ pub fn upgrade() {
         }
     }
 
-    if updates.len() == 0 {
-        println!("==> No updates found!");
+    match updates.len() {
+        0 => {
+            println!("==> No updates found.");
 
-        remove_lock().expect("Failed to remove lock?");
-        std::process::exit(0);
-    }
-
-    if updates.len() == 1 {
-        println!("==> Updating {} package...", updates.len());
-    } else {
-        println!("==> Updating {} packages...", updates.len());
+            remove_lock().expect("Failed to remove lock file.");
+            std::process::exit(0);
+        },
+        1 => {
+            println!("==> Updating {} package...", updates.len());
+        },
+        _ => {
+            println!("==> Updating {} packages...", updates.len());
+        }
     }
 
     // Append padding to updates so install will accept it
