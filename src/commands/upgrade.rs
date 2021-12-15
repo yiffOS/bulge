@@ -49,7 +49,11 @@ pub fn upgrade() {
         std::process::exit(0);
     }
 
-    println!("==> Found {} updates", updates.len());
+    if updates.len() == 1 {
+        println!("==> Updating {} package...", updates.len());
+    } else {
+        println!("==> Updating {} packages...", updates.len());
+    }
 
     // Append padding to updates so install will accept it
     let mut padding: Vec<String> = vec!["0".to_string(), "1".to_string()];
