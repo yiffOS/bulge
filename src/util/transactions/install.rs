@@ -2,9 +2,11 @@ use std::fs;
 use std::fs::File;
 use crate::util::database::fns::add_package_to_installed;
 use crate::util::database::structs::Source;
-use crate::util::macros::get_root;
+use crate::util::lock::remove_lock;
+use crate::util::macros::{continue_prompt, get_root};
 use crate::util::packaging::fns::{decode_pkg_file, decompress_xz};
 use crate::util::packaging::structs::{NewPackage, Package};
+use crate::util::transactions::conflict::run_conflict_check;
 
 #[derive(PartialEq, Eq, Hash)]
 pub struct InstallTransaction {
@@ -40,14 +42,28 @@ pub fn run_install(install: InstallTransaction, file: File) {
             }
         });
 
-    //Add package to database
-    add_package_to_installed(NewPackage {
-        name: install.package.name.clone(),
-        groups: install.package.groups,
-        version: install.package.version.clone(),
-        epoch: install.package.epoch,
-        installed_files: files
-    }, install.source);
+    let conflicting = run_conflict_check(&files, installed_pkg.is_ok(), get_root());
+
+    if conflicting.is_conflict {
+        eprintln!("Package files already exist on the file system!");
+
+        let s = continue_prompt();
+
+        if !s {
+            println!("Abandoning install!");
+
+            remove_lock().expect("Failed to remove lock?");
+
+            std::process::exit(1);
+        } else {
+            println!("Continuing install!");
+
+            for i in conflicting.files {
+                println!("Removing {}", i);
+                fs::remove_file(i).expect("Failed to delete file!");
+            }
+        }
+    }
 
     // Open data tar for extraction
     let mut data_tar = decompress_xz(
