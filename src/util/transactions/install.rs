@@ -1,6 +1,7 @@
 use std::fs;
 use std::fs::File;
-use crate::util::database::fns::add_package_to_installed;
+use version_compare::Version;
+use crate::util::database::fns::{add_package_to_installed, get_installed_package};
 use crate::util::database::structs::Source;
 use crate::util::lock::remove_lock;
 use crate::util::macros::{continue_prompt, get_root};
@@ -22,6 +23,29 @@ pub fn run_install(install: InstallTransaction, file: File) {
 
     let package = decode_pkg_file(fs::File::open(format!("{}/tmp/bulge/{}/PKG", get_root(), &install.package.name))
         .expect("Failed to open PKG file!"));
+
+    // Check if package is already installed
+    let installed_pkg = get_installed_package(&package.name);
+    if installed_pkg.is_ok() {
+        // Check if this is a downgrade
+        if Version::from(&package.version) > Version::from(&installed_pkg.as_ref().unwrap().version) {
+            let installed_pkg = get_installed_package(&package.name); // Result doesn't have copy
+
+            // Ask the user if they'd like to still install the specified package
+            println!("> This will result in a downgrade as {} v{} is already installed!", &package.name, &installed_pkg.unwrap().version);
+
+            let s = continue_prompt();
+
+            if !s {
+                println!("> Abandoning install!");
+
+                remove_lock().expect("Failed to remove lock!");
+                std::process::exit(1);
+            }
+        }
+
+        println!("> Warning: {} is already installed, reinstalling...", &package.name);
+    }
 
     // Decompress data
     let mut data_tar_files = decompress_xz(
