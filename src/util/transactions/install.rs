@@ -63,4 +63,13 @@ pub fn run_install(install: InstallTransaction, file: File) {
     data_tar
         .unpack(get_root() + "/")
         .expect("Extraction error!");
+
+    //Add package to database
+    add_package_to_installed(NewPackage {
+        name: install.package.name.clone(),
+        groups: install.package.groups,
+        version: install.package.version.clone(),
+        epoch: install.package.epoch,
+        installed_files: files
+    }, install.source);
 }
