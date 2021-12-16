@@ -1,5 +1,5 @@
 use std::collections::{HashMap, HashSet};
-use crate::util::database::fns::{get_dependencies, get_installed_package};
+use crate::util::database::fns::{get_dependencies, get_installed_package, get_provides, get_remote_package, search_for_package};
 use crate::util::lock::remove_lock;
 use crate::util::macros::string_to_vec;
 use crate::util::packaging::structs::Package;
@@ -43,10 +43,26 @@ pub fn run_depend_check(packages: HashSet<String>) -> HashMap<String, bool> {
     let mut dependencies = HashMap::new();
 
     for package in packages.iter() {
-        if get_installed_package(&package).is_ok() {
-            dependencies.insert(package.clone(), true);
+        let remote_package_repo = search_for_package(&package);
+
+        if remote_package_repo.is_ok() {
+            let repo = remote_package_repo.unwrap();
+            let remote_package = get_remote_package(&package, &repo);
+
+            for provides_package in get_provides(&repo, &remote_package.unwrap().name)  {
+                if get_installed_package(&provides_package.name).is_ok() {
+                    dependencies.insert(package.clone(), true);
+                    break;
+                } else {
+                    dependencies.insert(package.clone(), false);
+                }
+            }
         } else {
-            dependencies.insert(package.clone(), false);
+            if get_installed_package(&package).is_ok() {
+                dependencies.insert(package.clone(), true);
+            } else {
+                dependencies.insert(package.clone(), false);
+            }
         }
     }
 

@@ -321,3 +321,29 @@ pub fn get_group(repo: &String, group: &String) -> Vec<Package> {
 
     return result.map(|r| r.unwrap()).collect();
 }
+
+pub fn get_provides(repo: &String, package: &String) -> Vec<Package> {
+    let conn = Connection::open(format!("{}/etc/bulge/databases/cache/{}.db", get_root(), repo)).expect("Failed to open package database");
+
+    let mut statement = conn.prepare("SELECT * FROM packages WHERE instr(provides, ?) > 0;").expect("Failed to create statement");
+
+    let result = statement.query_map([package], | package | {
+        return Ok(Package{
+            name: package.get(0).unwrap(),
+            version: package.get(1).unwrap(),
+            epoch: package.get(2).unwrap(),
+            description: package.get(3).unwrap(),
+            groups: package.get(4).unwrap(),
+            url: package.get(5).unwrap(),
+            license: package.get(6).unwrap(),
+            depends: package.get(7).unwrap(),
+            optional_depends: package.get(8).unwrap(),
+            provides: package.get(9).unwrap(),
+            conflicts: package.get(10).unwrap(),
+            replaces: package.get(11).unwrap(),
+            sha512sum: package.get(12).unwrap()
+        });
+    }).expect("Failed to execute query");
+
+    return result.map(|r| r.unwrap()).collect();
+}
