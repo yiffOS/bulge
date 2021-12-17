@@ -28,7 +28,7 @@ pub fn run_install(install: InstallTransaction, file: File) {
     let installed_pkg = get_installed_package(&package.name);
     if installed_pkg.is_ok() {
         // Check if this is a downgrade
-        if Version::from(&package.version) > Version::from(&installed_pkg.as_ref().unwrap().version) {
+        if Version::from(&package.version) < Version::from(&installed_pkg.as_ref().unwrap().version) {
             let installed_pkg = get_installed_package(&package.name); // Result doesn't have copy
 
             // Ask the user if they'd like to still install the specified package
@@ -42,9 +42,9 @@ pub fn run_install(install: InstallTransaction, file: File) {
                 remove_lock().expect("Failed to remove lock!");
                 std::process::exit(1);
             }
+        } else if Version::from(&package.version) == Version::from(&installed_pkg.as_ref().unwrap().version) {
+            println!("> Warning: {} is already installed, reinstalling...", &package.name);
         }
-
-        println!("> Warning: {} is already installed, reinstalling...", &package.name);
     }
 
     // Decompress data
