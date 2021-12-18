@@ -32,7 +32,9 @@ pub fn init_database() {
                 source text not null,
                 version text not null,
                 epoch integer not null,
-                installed_files text
+                installed_files text,
+                provides text,
+                conflicts text
             )",
         [],
     ).expect("Failed to insert installed packages table");
@@ -53,6 +55,8 @@ pub fn init_database() {
         version: crate::get_version().to_string(),
         epoch: 0,
         installed_files: vec![],
+        provides: vec!["bulge".to_string()],
+        conflicts: vec![]
     }, Source{
         name: "core".to_string(),
         url: None

@@ -22,7 +22,9 @@ pub struct NewPackage {
     pub groups: String,
     pub version: String,
     pub epoch: i32,
-    pub installed_files: Vec<String>
+    pub installed_files: Vec<String>,
+    pub provides: Vec<String>,
+    pub conflicts: Vec<String>,
 }
 
 pub struct RequestPackage {
