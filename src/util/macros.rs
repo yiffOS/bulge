@@ -5,6 +5,7 @@ use isahc::http::Error;
 use isahc::{Body, Request, Response};
 use isahc::config::RedirectPolicy;
 use isahc::prelude::*;
+use crate::util::database::structs::InstalledPackages;
 use crate::util::packaging::structs::Package;
 
 /// Converts a vec of strings to a flat string separated by ","
@@ -29,6 +30,19 @@ pub fn display_installing_packages(set: HashMap<Package, String>) -> String {
         temp_string.push_str(&*i.0.version);
         temp_string.push_str("-");
         temp_string.push_str(&*i.0.epoch.to_string());
+        temp_string.push_str(" ");
+    }
+    temp_string
+}
+
+pub fn display_removing_packages(set: HashSet<InstalledPackages>) -> String {
+    let mut temp_string: String = String::new();
+    for i in set {
+        temp_string.push_str(&*i.name);
+        temp_string.push_str("-");
+        temp_string.push_str(&*i.version);
+        temp_string.push_str("-");
+        temp_string.push_str(&*i.epoch.to_string());
         temp_string.push_str(" ");
     }
     temp_string
