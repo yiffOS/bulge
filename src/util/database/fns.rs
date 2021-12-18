@@ -107,6 +107,8 @@ pub fn return_owned_files(package: &String) -> Result<Vec<String>, rusqlite::Err
             version: package.get(3).unwrap(),
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+            provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
         });
     })?;
 
@@ -187,6 +189,8 @@ pub fn get_installed_package(package: &String) -> Result<InstalledPackages, Pack
             version: package.get(3).unwrap(),
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+            provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
         });
     }).expect("DB Error!");
 
@@ -267,6 +271,8 @@ pub fn get_all_installed() -> Vec<InstalledPackages> {
             version: package.get(3).unwrap(),
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+            provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
         });
     }).expect("Failed to execute query");
 
