@@ -79,14 +79,16 @@ pub fn add_package_to_installed(package: NewPackage, source: Source) {
     }
 
     conn.execute("
-        INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch, installed_files)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6);",
+        INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch, installed_files, provides, conflicts)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);",
         params![package.name,
         package.groups,
         package_source,
         package.version,
         package.epoch,
-        installed_files]
+        installed_files,
+        vec_to_string(package.provides),
+        vec_to_string(package.conflicts)]
     ).expect("Failed to insert package into database!");
 }
 
