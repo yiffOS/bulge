@@ -7,7 +7,7 @@ use version_compare::Version;
 use xz2::read::XzDecoder;
 
 use crate::util::{database::{fns::{add_package_to_installed, get_installed_package, remove_package_from_installed, return_owned_files}, structs::Source}, lock::remove_lock, packaging::structs::{NewPackage, Package}};
-use crate::util::macros::get_root;
+use crate::util::macros::{get_root, string_to_vec};
 use crate::util::transactions::conflict::run_conflict_check;
 
 pub fn decompress_xz(compressed_tar: File) -> Archive<XzDecoder<File>> {
@@ -126,7 +126,9 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
         groups: package.groups, 
         version: package.version.clone(), 
         epoch: package.epoch, 
-        installed_files: files
+        installed_files: files,
+        provides: string_to_vec(package.provides),
+        conflicts: string_to_vec(package.conflicts),
     }, source);
 
     println!("Decompressing files...");

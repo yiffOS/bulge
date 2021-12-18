@@ -16,6 +16,7 @@ use crate::util::lock::{create_lock, lock_exists, remove_lock};
 use crate::util::macros::{continue_prompt, display_installing_packages, get, get_root};
 use crate::util::mirrors::load_mirrors;
 use crate::util::packaging::structs::{Package, RequestPackage};
+use crate::util::transactions::conflict::run_conflict_package_check;
 use crate::util::transactions::dependencies::{run_depend_check, run_depend_resolve};
 use crate::util::transactions::install::{InstallTransaction, run_install};
 
@@ -101,7 +102,26 @@ pub fn install(args: Vec<String>) {
     let mut installed_packages: HashSet<Package> = HashSet::new();
 
     println!("==> Looking for package conflicts...");
-    // TODO: Check for conflicts
+    let mut conflict = false;
+    for i in packages.clone() {
+        let conflict_pkg = run_conflict_package_check(&i.name);
+
+        if conflict_pkg.is_conflict {
+            conflict = true;
+            println!("ERR> {} conflicts with:", i.name);
+
+            for x in conflict_pkg.packages {
+                println!("\t{} {}-{}", x.name, x.version, x.epoch);
+            }
+        }
+    }
+
+    if conflict {
+        println!("ERR> Package conflicts detected. Aborting...");
+
+        remove_lock().expect("Failed to remove lock?");
+        std::process::exit(1);
+    }
 
     println!("==> Generating install queue...");
     let mut queue: HashMap<Package, String> = HashMap::new();
@@ -116,6 +136,7 @@ pub fn install(args: Vec<String>) {
 
     if !(continue_prompt()) {
         println!("Abandoning install!");
+
         remove_lock().expect("Failed to remove lock?");
         std::process::exit(1);
     }
@@ -157,7 +178,7 @@ pub fn install(args: Vec<String>) {
         }
     }
 
-    println!("\n==> Checking for file conflicts...");
+    // println!("\n==> Checking for file conflicts...");
     // TODO: Split extraction from install for this?
 
     println!("\n==> Installing packages...");

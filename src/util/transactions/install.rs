@@ -4,7 +4,7 @@ use version_compare::Version;
 use crate::util::database::fns::{add_package_to_installed, get_installed_package};
 use crate::util::database::structs::Source;
 use crate::util::lock::remove_lock;
-use crate::util::macros::{continue_prompt, get_root};
+use crate::util::macros::{continue_prompt, get_root, string_to_vec};
 use crate::util::packaging::fns::{decode_pkg_file, decompress_xz};
 use crate::util::packaging::structs::{NewPackage, Package};
 use crate::util::transactions::conflict::run_conflict_check;
@@ -110,6 +110,8 @@ pub fn run_install(install: InstallTransaction, file: File) {
         groups: install.package.groups,
         version: install.package.version.clone(),
         epoch: install.package.epoch,
-        installed_files: files
+        installed_files: files,
+        provides: string_to_vec(install.package.provides),
+        conflicts: string_to_vec(install.package.conflicts),
     }, install.source);
 }
