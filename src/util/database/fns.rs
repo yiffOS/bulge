@@ -387,3 +387,25 @@ pub fn get_conflicts(package: &String) -> Vec<InstalledPackages> {
 
     return result.map(|r| r.unwrap()).collect();
 }
+
+pub fn get_depended_on(package: &String) -> Vec<InstalledPackages> {
+    let conn = Connection::open(format!("{}/etc/bulge/databases/bulge.db", get_root())).expect("Failed to open package database");
+
+    let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE instr(dependencies, ?) > 0;").expect("Failed to create statement");
+
+    let result = statement.query_map([package], | package | {
+        return Ok(InstalledPackages{
+            name: package.get(0).unwrap(),
+            groups: string_to_vec(package.get::<usize, String>(1).unwrap()),
+            source: package.get(2).unwrap(),
+            version: package.get(3).unwrap(),
+            epoch: package.get(4).unwrap(),
+            installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+            provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap()),
+            dependencies: string_to_vec(package.get::<usize, String>(8).unwrap()),
+        });
+    }).expect("Failed to execute query");
+
+    return result.map(|r| r.unwrap()).collect();
+}

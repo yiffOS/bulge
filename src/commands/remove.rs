@@ -1,7 +1,7 @@
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
 use crate::util::{lock::{create_lock, lock_exists, remove_lock}, packaging::fns::run_remove};
-use crate::util::database::fns::get_installed_package;
+use crate::util::database::fns::{get_depended_on, get_installed_package};
 use crate::util::database::structs::InstalledPackages;
 use crate::util::macros::{continue_prompt, display_removing_packages};
 
@@ -16,26 +16,49 @@ pub fn remove(args: Vec<String>) {
     lock_exists();
     create_lock().expect("Failed to create lock file. (Does /tmp/bulge.funny already exist?)");
 
-    let packages: HashSet<String> = args.clone().drain(2..).collect();
-    let mut removal_queue: HashSet<InstalledPackages> = HashSet::new();
+    println!("==> Getting packages...");
+    let raw_packages: Vec<String> = args.clone().drain(2..).collect();
+    let mut packages: HashSet<InstalledPackages> = HashSet::new();
 
-    println!("==> Collecting removal queue...");
-    for i in packages {
-        let installed_pkg = get_installed_package(&i);
+    for i in raw_packages {
+        let package = get_installed_package(&i);
 
-        if installed_pkg.is_ok() {
-            removal_queue.insert(installed_pkg.unwrap());
+        if package.is_ok() {
+            packages.insert(package.unwrap());
         } else {
-            eprintln!("=> Package {} is not installed. Skipping...", i);
+            println!("WARN> Package {} not found.", i);
         }
     }
 
-    println!("==> Checking for dependencies...");
-    for i in removal_queue.clone() {
+    println!("==> Checking dependencies...");
+    let mut abort = false;
+    let mut abort_map: HashMap<InstalledPackages, Vec<InstalledPackages>> = HashMap::new();
+    for i in packages.clone() {
+        let mut abort_vec: Vec<InstalledPackages> = Vec::new();
 
+        for x in get_depended_on(&i.name) {
+            abort = true;
+            abort_vec.push(x);
+        }
+
+        abort_map.insert(i, abort_vec);
     }
 
-    println!("\nPackages to remove [{}]: {}\n", removal_queue.len(), display_removing_packages(removal_queue.clone()));
+    if abort {
+        println!("ERR> The following packages are depended on by other packages:");
+        for (i, v) in abort_map.iter() {
+            println!("{} {}-{} is required by:", i.name, i.version, i.epoch);
+            for x in v {
+                println!("\t{} {}-{}", x.name, x.version, x.epoch);
+            }
+        }
+
+        println!("ERR> Please remove the above packages before continuing.");
+        remove_lock().expect("Failed to remove lock file.");
+        std::process::exit(1);
+    }
+
+    println!("\nPackages to remove [{}]: {}\n", packages.len(), display_removing_packages(packages.clone()));
 
     if !continue_prompt() {
         println!("\n==> Aborting!");
@@ -46,7 +69,7 @@ pub fn remove(args: Vec<String>) {
 
     println!("\n==> Removing packages...");
 
-    for i in removal_queue {
+    for i in packages {
         println!("=> Removing {} {}-{}...", &i.name, &i.version, &i.epoch);
         run_remove(&i.name);
     }
