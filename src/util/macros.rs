@@ -1,5 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::{env, io};
+use std::fs::File;
 use std::io::Write;
 use isahc::http::Error;
 use isahc::{Body, Request, Response};
@@ -7,6 +8,7 @@ use isahc::config::RedirectPolicy;
 use isahc::prelude::*;
 use crate::util::database::structs::InstalledPackages;
 use crate::util::packaging::structs::Package;
+use crate::util::transactions::install::InstallTransaction;
 
 /// Converts a vec of strings to a flat string separated by ","
 pub fn vec_to_string(vec: Vec<String>) -> String {

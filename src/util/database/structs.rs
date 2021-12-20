@@ -27,7 +27,7 @@ pub struct InstalledPackages {
     pub dependencies: Vec<String>
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct Source {
     pub name: String,
     pub url: Option<String>
