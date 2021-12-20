@@ -23,7 +23,8 @@ pub struct InstalledPackages {
     pub epoch: i32,
     pub installed_files: Vec<String>,
     pub provides: Vec<String>,
-    pub conflicts: Vec<String>
+    pub conflicts: Vec<String>,
+    pub dependencies: Vec<String>
 }
 
 #[derive(PartialEq, Eq, Hash)]

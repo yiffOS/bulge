@@ -113,5 +113,6 @@ pub fn run_install(install: InstallTransaction, file: File) {
         installed_files: files,
         provides: string_to_vec(install.package.provides),
         conflicts: string_to_vec(install.package.conflicts),
+        dependencies: string_to_vec(install.package.depends),
     }, install.source);
 }
