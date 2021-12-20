@@ -129,6 +129,7 @@ pub fn run_install(file: File, tmp_path: &str, source: Source) {
         installed_files: files,
         provides: string_to_vec(package.provides),
         conflicts: string_to_vec(package.conflicts),
+        dependencies: string_to_vec(package.depends),
     }, source);
 
     println!("Decompressing files...");

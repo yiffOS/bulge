@@ -34,7 +34,8 @@ pub fn init_database() {
                 epoch integer not null,
                 installed_files text,
                 provides text,
-                conflicts text
+                conflicts text,
+                dependencies text
             )",
         [],
     ).expect("Failed to insert installed packages table");
@@ -56,7 +57,8 @@ pub fn init_database() {
         epoch: 0,
         installed_files: vec![],
         provides: vec!["bulge".to_string()],
-        conflicts: vec![]
+        conflicts: vec![],
+        dependencies: vec!["curl".to_string(), "sqlite".to_string()],
     }, Source{
         name: "core".to_string(),
         url: None
@@ -79,8 +81,8 @@ pub fn add_package_to_installed(package: NewPackage, source: Source) {
     }
 
     conn.execute("
-        INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch, installed_files, provides, conflicts)
-        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8);",
+        INSERT OR REPLACE INTO installed_packages (name, groups, source, version, epoch, installed_files, provides, conflicts, dependencies)
+        VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9);",
         params![package.name,
         package.groups,
         package_source,
@@ -88,7 +90,8 @@ pub fn add_package_to_installed(package: NewPackage, source: Source) {
         package.epoch,
         installed_files,
         vec_to_string(package.provides),
-        vec_to_string(package.conflicts)]
+        vec_to_string(package.conflicts),
+        vec_to_string(package.dependencies)]
     ).expect("Failed to insert package into database!");
 }
 
@@ -108,7 +111,8 @@ pub fn return_owned_files(package: &String) -> Result<Vec<String>, rusqlite::Err
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
             provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
-            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap()),
+            dependencies: string_to_vec(package.get::<usize, String>(8).unwrap())
         });
     })?;
 
@@ -190,7 +194,8 @@ pub fn get_installed_package(package: &String) -> Result<InstalledPackages, Pack
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
             provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
-            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap()),
+            dependencies: string_to_vec(package.get::<usize, String>(8).unwrap())
         });
     }).expect("DB Error!");
 
@@ -272,7 +277,8 @@ pub fn get_all_installed() -> Vec<InstalledPackages> {
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
             provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
-            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap()),
+            dependencies: string_to_vec(package.get::<usize, String>(8).unwrap())
         });
     }).expect("Failed to execute query");
 
@@ -374,7 +380,30 @@ pub fn get_conflicts(package: &String) -> Vec<InstalledPackages> {
             epoch: package.get(4).unwrap(),
             installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
             provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
-            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap())
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap()),
+            dependencies: string_to_vec(package.get::<usize, String>(8).unwrap()),
+        });
+    }).expect("Failed to execute query");
+
+    return result.map(|r| r.unwrap()).collect();
+}
+
+pub fn get_depended_on(package: &String) -> Vec<InstalledPackages> {
+    let conn = Connection::open(format!("{}/etc/bulge/databases/bulge.db", get_root())).expect("Failed to open package database");
+
+    let mut statement = conn.prepare("SELECT * FROM installed_packages WHERE instr(dependencies, ?) > 0;").expect("Failed to create statement");
+
+    let result = statement.query_map([package], | package | {
+        return Ok(InstalledPackages{
+            name: package.get(0).unwrap(),
+            groups: string_to_vec(package.get::<usize, String>(1).unwrap()),
+            source: package.get(2).unwrap(),
+            version: package.get(3).unwrap(),
+            epoch: package.get(4).unwrap(),
+            installed_files: package.get::<usize, String>(5).unwrap().split(",").map(|s| s.to_string()).collect(),
+            provides: string_to_vec(package.get::<usize, String>(6).unwrap()),
+            conflicts: string_to_vec(package.get::<usize, String>(7).unwrap()),
+            dependencies: string_to_vec(package.get::<usize, String>(8).unwrap()),
         });
     }).expect("Failed to execute query");
 

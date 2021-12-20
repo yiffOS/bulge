@@ -9,7 +9,7 @@ use crate::util::packaging::fns::{decode_pkg_file, decompress_xz};
 use crate::util::packaging::structs::{NewPackage, Package};
 use crate::util::transactions::conflict::run_conflict_check;
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct InstallTransaction {
     pub package: Package,
     pub source: Source,
@@ -113,5 +113,6 @@ pub fn run_install(install: InstallTransaction, file: File) {
         installed_files: files,
         provides: string_to_vec(install.package.provides),
         conflicts: string_to_vec(install.package.conflicts),
+        dependencies: string_to_vec(install.package.depends),
     }, install.source);
 }

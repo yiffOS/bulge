@@ -25,6 +25,7 @@ pub struct NewPackage {
     pub installed_files: Vec<String>,
     pub provides: Vec<String>,
     pub conflicts: Vec<String>,
+    pub dependencies: Vec<String>
 }
 
 pub struct RequestPackage {
