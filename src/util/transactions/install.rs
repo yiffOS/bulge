@@ -1,5 +1,6 @@
 use std::fs;
 use std::fs::File;
+use std::path::Path;
 use version_compare::Version;
 use crate::util::database::fns::{add_package_to_installed, get_installed_package};
 use crate::util::database::structs::Source;
@@ -26,6 +27,7 @@ pub fn run_install(install: InstallTransaction, file: File) {
 
     // Check if package is already installed
     let installed_pkg = get_installed_package(&package.name);
+    let mut reinstall = false;
     if installed_pkg.is_ok() {
         // Check if this is a downgrade
         if Version::from(&package.version) < Version::from(&installed_pkg.as_ref().unwrap().version) {
@@ -45,6 +47,8 @@ pub fn run_install(install: InstallTransaction, file: File) {
         } else if Version::from(&package.version) == Version::from(&installed_pkg.as_ref().unwrap().version) {
             println!("> Warning: {} is already installed, reinstalling...", &package.name);
         }
+
+        reinstall = true;
     }
 
     // Decompress data
@@ -84,7 +88,17 @@ pub fn run_install(install: InstallTransaction, file: File) {
 
             for i in conflicting.files {
                 println!("Removing {}", i);
-                fs::remove_file(i).expect("Failed to delete file!");
+                if Path::new(&i).exists() {
+                    fs::remove_file(&i).expect("Failed to delete file!");
+                }
+            }
+        }
+    }
+
+    if reinstall {
+        for i in &files {
+            if Path::new(&i).exists() {
+                fs::remove_file(&i).expect("Failed to delete file!");
             }
         }
     }
