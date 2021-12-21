@@ -10,11 +10,12 @@ use rusqlite::Error;
 use text_io::read;
 
 use crate::util::config::fns::get_sources;
-use crate::util::database::fns::{get_remote_package, search_for_package};
+use crate::util::database::fns::{get_provides, get_remote_package, search_for_package};
 use crate::util::database::structs::{RemotePackage, Source};
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
 use crate::util::macros::{continue_prompt, display_installing_packages, get, get_root};
 use crate::util::mirrors::load_mirrors;
+use crate::util::packaging::fns::run_remove;
 use crate::util::packaging::structs::{Package, RequestPackage};
 use crate::util::transactions::conflict::run_conflict_package_check;
 use crate::util::transactions::dependencies::{run_depend_check, run_depend_resolve};
@@ -103,24 +104,51 @@ pub fn install(args: Vec<String>) {
 
     println!("==> Looking for package conflicts...");
     let mut conflict = false;
+
+    let mut possible_replace = false;
+    let mut replace: HashMap<String, String> = HashMap::new();
+
     for i in packages.clone() {
         let conflict_pkg = run_conflict_package_check(&i.name);
 
         if conflict_pkg.is_conflict {
             conflict = true;
-            println!("ERR> {} conflicts with:", i.name);
+            println!("ERR> {} conflicts with:", &i.name);
 
             for x in conflict_pkg.packages {
                 println!("\t{} {}-{}", x.name, x.version, x.epoch);
+
+                if get_remote_package(&i.name, &i.repo).unwrap().provides.contains(&x.name) {
+                    possible_replace = true;
+                    replace.insert(i.name.clone(), x.name);
+                }
             }
         }
     }
 
-    if conflict {
+    if conflict && !possible_replace {
         println!("ERR> Package conflicts detected. Aborting...");
 
         remove_lock().expect("Failed to remove lock?");
         std::process::exit(1);
+    }
+
+    if possible_replace {
+        for (i, x) in replace {
+            println!("\n==> {} can be replaced with {}", x, i);
+
+            if continue_prompt() {
+                println!("=> Removing {}...", &x);
+                run_remove(&x);
+            } else {
+                println!("ERR> Package conflicts detected. Aborting...");
+
+                remove_lock().expect("Failed to remove lock?");
+                std::process::exit(1);
+            }
+        }
+
+        println!();
     }
 
     println!("==> Generating install queue...");
