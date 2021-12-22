@@ -7,7 +7,6 @@ use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
 use ring::test::run;
 use rusqlite::Error;
-use text_io::read;
 
 use crate::util::config::fns::get_sources;
 use crate::util::database::fns::{get_provides, get_remote_package, search_for_package};
