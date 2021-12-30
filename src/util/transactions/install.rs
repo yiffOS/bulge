@@ -88,8 +88,8 @@ pub fn run_install(install: InstallTransaction, file: File) {
 
             for i in conflicting.files {
                 println!("Removing {}", i);
-                if Path::new(&i).exists() {
-                    fs::remove_file(&i).expect("Failed to delete file!");
+                if Path::new(&format!("{}/{}", get_root(), &i)).exists() {
+                    fs::remove_file(&format!("{}/{}", get_root(), &i)).expect("Failed to delete file!");
                 }
             }
         }
@@ -97,8 +97,8 @@ pub fn run_install(install: InstallTransaction, file: File) {
 
     if reinstall {
         for i in &files {
-            if Path::new(&i).exists() {
-                fs::remove_file(&i).expect("Failed to delete file!");
+            if Path::new(&format!("{}/{}", get_root(), &i)).exists() {
+                fs::remove_file(&format!("{}/{}", get_root(), &i)).expect("Failed to delete file!");
             }
         }
     }
