@@ -30,6 +30,13 @@ pub fn remove(args: Vec<String>) {
         }
     }
 
+    if packages.is_empty() {
+        println!("ERR> No valid packages specified!");
+
+        remove_lock().expect("Failed to remove lock file.");
+        std::process::exit(1);
+    }
+
     println!("==> Checking dependencies...");
     let mut abort = false;
     let mut abort_map: HashMap<InstalledPackages, Vec<InstalledPackages>> = HashMap::new();
