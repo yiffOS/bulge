@@ -53,12 +53,20 @@ pub fn install(args: Vec<String>) {
 
         let repo_unwrap = repo.unwrap();
 
+        let remote_package = get_remote_package(&i, &repo_unwrap);
+
+        if remote_package.is_err() {
+            eprintln!("WARN> {} was not found!", &i);
+
+            continue;
+        }
+
         packages.insert(Packages {
             name: i.clone(),
             repo: repo_unwrap.clone()
         });
 
-        let remote_package = get_remote_package(&i, &repo_unwrap).expect("Failed to get remote package.");
+        let remote_package = remote_package.unwrap();
 
         if remote_package.depends.is_empty() {
             // Let's not check for depends as there is none
@@ -92,6 +100,14 @@ pub fn install(args: Vec<String>) {
                 });
             }
         }
+    }
+
+    if packages.is_empty() {
+        eprintln!("ERR> No packages in queue! Aborting...");
+
+        remove_lock().expect("Failed to remove lock?");
+
+        std::process::exit(1);
     }
 
     println!("==> Checking for already installed packages...");

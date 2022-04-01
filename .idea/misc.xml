@@ -6,4 +6,14 @@
   <component name="TaskProjectConfiguration">
     <server type="YouTrack" url="https://bugs.yiffos.gay" />
   </component>
+  <component name="UnattendedHostPersistenceState">
+    <option name="openedFilesInfos">
+      <list>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="1973" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/install.rs" />
+        </OpenedFileInfo>
+      </list>
+    </option>
+  </component>
 </project>
