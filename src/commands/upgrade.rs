@@ -6,6 +6,9 @@ use crate::util::lock::{create_lock, lock_exists, remove_lock};
 pub fn upgrade() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
 
+    // Ensure databases are synced
+    crate::commands::sync::sync();
+
     lock_exists();
 
     create_lock().expect("Failed to create lock file. (Does /tmp/bulge.funny already exist?)");

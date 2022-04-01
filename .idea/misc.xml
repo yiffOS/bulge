@@ -14,8 +14,16 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/install.rs" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="821" />
+          <option name="caretOffset" value="539" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/help.rs" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/sync.rs" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/upgrade.rs" />
         </OpenedFileInfo>
       </list>
     </option>
