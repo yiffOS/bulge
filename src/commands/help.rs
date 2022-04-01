@@ -14,10 +14,10 @@ pub fn help() {
     println!("\t\t - Install a package from a local archive");
     println!("\t bulge {{r remove}} <package(s)>");
     println!("\t\t - Uninstall a specified package");
-    println!("\t bulge info <package>");
-    println!("\t\t - TODO");
-    println!("\t bulge search <package>");
-    println!("\t\t - TODO");
+    //println!("\t bulge info <package>");
+    //println!("\t\t - TODO");
+    //println!("\t bulge search <package>");
+    //println!("\t\t - TODO");
     println!("\t bulge list");
     println!("\t\t - List all installed packages with their version and source");
 }
