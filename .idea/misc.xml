@@ -26,8 +26,20 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/sync.rs" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="225" />
+          <option name="caretOffset" value="203" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/Cargo.toml" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/util/packaging/fns.rs" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="3027" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/localinstall.rs" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="634" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/util/transactions/install.rs" />
         </OpenedFileInfo>
       </list>
     </option>
