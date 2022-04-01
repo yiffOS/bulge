@@ -10,8 +10,12 @@
     <option name="openedFilesInfos">
       <list>
         <OpenedFileInfo>
-          <option name="caretOffset" value="1973" />
+          <option name="caretOffset" value="1858" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/install.rs" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/help.rs" />
         </OpenedFileInfo>
       </list>
     </option>
