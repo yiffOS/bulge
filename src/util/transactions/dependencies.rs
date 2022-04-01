@@ -27,7 +27,7 @@ pub fn run_depend_resolve(package: Package, dependencies: &mut HashSet<String>) 
         for depr_dep in deeper_dep.unwrap() {
             if dependencies.contains(&depr_dep.name) {
                 // Circular dependency detected, let's not loop forever thanks
-                break;
+                continue;
             }
 
             // Insert depend we're looking into in case it doesn't have any dependencies
