@@ -18,12 +18,16 @@
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/help.rs" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
+          <option name="caretOffset" value="1227" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/upgrade.rs" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="118" />
           <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/sync.rs" />
         </OpenedFileInfo>
         <OpenedFileInfo>
-          <option name="caretOffset" value="0" />
-          <option name="fileUrl" value="file://$PROJECT_DIR$/src/commands/upgrade.rs" />
+          <option name="caretOffset" value="225" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/Cargo.toml" />
         </OpenedFileInfo>
       </list>
     </option>
