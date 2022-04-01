@@ -3,8 +3,6 @@ use crate::util::{database::structs::Source, macros::{string_to_vec, vec_to_stri
 use std::{time::{SystemTime, UNIX_EPOCH}, vec};
 use crate::util::config::fns::get_sources;
 use std::{error::Error, fmt};
-use std::collections::HashSet;
-use crate::util::database::structs::RemotePackage;
 use crate::util::macros::get_root;
 
 use super::structs::InstalledPackages;
@@ -249,14 +247,14 @@ pub fn get_dependencies(package_name: String) -> Result<Vec<Package>, PackageDBE
 
     let pkg_repo = search_for_package(&package_name)?;
 
-    let mut pkg = get_remote_package(&package_name, &pkg_repo)?;
+    let pkg = get_remote_package(&package_name, &pkg_repo)?;
 
     if pkg.depends.is_empty() {
         return Ok(dependencies);
     }
 
     for dep in pkg.depends.split(",") {
-        let mut dep_pkg = get_remote_package(&dep.to_string(), &pkg_repo)?;
+        let dep_pkg = get_remote_package(&dep.to_string(), &pkg_repo)?;
         dependencies.push(dep_pkg);
     }
 

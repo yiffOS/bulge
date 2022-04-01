@@ -1,21 +1,18 @@
-use std::{fs, vec};
+use std::fs;
 use std::collections::{HashMap, HashSet};
 use std::fs::File;
-use std::io::{stdin, stdout, Write};
+use std::io::Write;
 
 use isahc::http::StatusCode;
 use isahc::ReadResponseExt;
-use ring::test::run;
-use rusqlite::Error;
 
-use crate::util::config::fns::get_sources;
-use crate::util::database::fns::{get_provides, get_remote_package, search_for_package};
-use crate::util::database::structs::{RemotePackage, Source};
+use crate::util::database::fns::{get_remote_package, search_for_package};
+use crate::util::database::structs::Source;
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
 use crate::util::macros::{continue_prompt, display_installing_packages, get, get_root};
 use crate::util::mirrors::load_mirrors;
 use crate::util::packaging::fns::run_remove;
-use crate::util::packaging::structs::{Package, RequestPackage};
+use crate::util::packaging::structs::Package;
 use crate::util::transactions::conflict::run_conflict_package_check;
 use crate::util::transactions::dependencies::{run_depend_check, run_depend_resolve};
 use crate::util::transactions::install::{InstallTransaction, run_install};
@@ -99,7 +96,7 @@ pub fn install(args: Vec<String>) {
 
     println!("==> Checking for already installed packages...");
     // TODO: Check for already installed packages and collect them into a hashset to display
-    let mut installed_packages: HashSet<Package> = HashSet::new();
+    // let mut installed_packages: HashSet<Package> = HashSet::new();
 
     println!("==> Looking for package conflicts...");
     let mut conflict = false;
@@ -192,7 +189,7 @@ pub fn install(args: Vec<String>) {
                 .write_all(downloaded_package.bytes().expect("Failed to get bytes.").as_slice())
                 .expect("Failed to write to temporary file!");
 
-            let mut file = File::open(format!("{}/tmp/{}-{}-{}.tar.xz", get_root(),
+            let file = File::open(format!("{}/tmp/{}-{}-{}.tar.xz", get_root(),
                                               &i.0.name, &i.0.version, &i.0.epoch))
                 .expect("Failed to open temporary file!");
 

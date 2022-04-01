@@ -5,10 +5,8 @@ use std::path::Path;
 
 use crate::util::database::structs::Source;
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
-use crate::util::macros::{continue_prompt, display_installing_packages, get_root};
+use crate::util::macros::{continue_prompt, get_root};
 use crate::util::packaging::fns::{check_if_package, decode_pkg_file, decompress_xz};
-use crate::util::packaging::structs::Package;
-use crate::util::transactions::conflict::run_conflict_package_check;
 use crate::util::transactions::install::{InstallTransaction, run_install};
 
 pub fn local_install(args: Vec<String>) {
@@ -57,7 +55,7 @@ pub fn local_install(args: Vec<String>) {
         std::process::exit(1);
     }
 
-    for (i, f) in &package_queue {
+    for (i, _f) in &package_queue {
         temp_string.push_str(&*i.package.name);
         temp_string.push_str("-");
         temp_string.push_str(&*i.package.version);

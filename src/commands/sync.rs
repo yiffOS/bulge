@@ -1,6 +1,5 @@
 use std::fs::File;
-use std::io::{copy, Cursor, Read, Write};
-use futures::SinkExt;
+use std::io::{copy, Read};
 
 use isahc::http::StatusCode;
 use ring::digest::{Context, SHA512};
@@ -14,8 +13,7 @@ use crate::util::macros::{get, get_root};
 use crate::util::mirrors::load_mirrors;
 
 use isahc::prelude::*;
-use isahc::{Body, Request, Response};
-use isahc::config::RedirectPolicy;
+use isahc::{Body, Response};
 
 pub fn sync() {
     sudo::escalate_if_needed().expect("Failed to escalate to root.");
@@ -54,7 +52,7 @@ pub fn sync() {
                 continue;
             }
 
-            let mut content_bytes = db_response_unwrap.bytes().expect("Failed to get bytes from response");
+            let content_bytes = db_response_unwrap.bytes().expect("Failed to get bytes from response");
             let mut content = content_bytes.as_slice();
             let mut content_save = content.clone();
 

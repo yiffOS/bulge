@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use std::iter::FromIterator;
 use crate::commands::install::install;
 use crate::util::database::fns::{get_group, search_for_group};
 use crate::util::lock::{create_lock, lock_exists, remove_lock};
