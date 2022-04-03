@@ -49,9 +49,6 @@ fn main() {
         // List commands
         "list" => commands::list::list(),
 
-        // Internal commands for setup
-        "setup" => commands::setup::init(),
-
         // Specify that command is invalid and show help command
         _ => {
             println!("bulge: Invalid command \"{}\", use {{-h --help}} for valid commands.", command);
