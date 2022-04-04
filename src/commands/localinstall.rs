@@ -27,8 +27,10 @@ pub fn local_install(args: Vec<String>) {
     for i in &packages {
         // Check if i is a valid path and assume it's a file we want to install if it is
         if Path::new(i).exists() {
-            if !check_if_package(decompress_xz(fs::File::open(i).expect("Failed to read package!"))) {
+            if !check_if_package(decompress_xz(fs::File::open(i).expect("Failed to read package!"))).is_ok() {
                 println!("WARN> {} is not a valid package!", i);
+
+                continue;
             }
 
             let mut package_tar = decompress_xz(fs::File::open(i).expect("Failed to read package!"));
@@ -49,7 +51,7 @@ pub fn local_install(args: Vec<String>) {
     let mut temp_string = String::new();
 
     if package_queue.is_empty() {
-        println!("ERR> No packages to install!");
+        println!("ERR> No packages in queue! Aborting...");
 
         remove_lock().expect("Failed to remove lock file.");
         std::process::exit(1);

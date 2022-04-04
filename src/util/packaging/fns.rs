@@ -16,16 +16,16 @@ pub fn decode_pkg_file(pkg: File) -> Package {
     return v;
 }
 
-pub fn check_if_package(mut xztar: Archive<XzDecoder<File>>) -> bool {    
+pub fn check_if_package(mut xztar: Archive<XzDecoder<File>>) -> Result<(), std::io::Error> {    
     // Look for PKG file
     for file in xztar.entries().unwrap() {
-        if file.unwrap().header().path().unwrap() == Path::new("PKG") {
+        if file?.header().path()? == Path::new("PKG") {
             // If a PKG file is found then this is a valid package
-            return true;
+            return Ok(());
         }                
     }
 
-    return false;
+    return Err(std::io::Error::new(std::io::ErrorKind::Other, "No PKG file found in package"));
 }
 
 pub fn run_remove(package: &String) {
