@@ -308,7 +308,7 @@ pub fn search_for_group(group: &String) -> Result<String, PackageDBError> {
         }
     }
 
-    return Ok(repo)
+    return Err(PackageDBError);
 }
 
 /// Get all packages in a requested group

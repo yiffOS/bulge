@@ -25,10 +25,9 @@ pub fn group_install(args: Vec<String>) {
         let group_repo = search_for_group(&i);
 
         if group_repo.is_err() {
-            eprintln!("==> Group {} not found!", &i);
+            eprintln!("WARN> Group {} not found!", &i);
 
-            remove_lock().expect("Failed to remove lock?");
-            std::process::exit(1);
+            continue;
         }
 
         let requested_group = get_group(&group_repo.unwrap(), &i);
@@ -36,6 +35,13 @@ pub fn group_install(args: Vec<String>) {
         for x in requested_group {
             install_queue.insert(x.name);
         }
+    }
+
+    if install_queue.is_empty() {
+        eprintln!("ERR> No packages in queue! Aborting...");
+
+        remove_lock().expect("Failed to remove lock?");
+        std::process::exit(1);
     }
 
     // Append padding to updates so install will accept it
